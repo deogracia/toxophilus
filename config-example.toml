@@ -1,0 +1,7 @@
+[app]
+port = 8080
+env = "development"
+
+[database]
+driver = "sqlite"
+dsn = "club_archerie.db"
