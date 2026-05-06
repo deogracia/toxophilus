@@ -17,8 +17,8 @@ test-v:
 
 # Génère et affiche la couverture de code dans le navigateur
 coverage:
-	go test -coverprofile=coverage.out ./...
-	go tool cover -html=coverage.out
+	go test -coverprofile coverage.out ./...
+	go tool cover -html coverage.out
 	@rm coverage.out # Nettoie le fichier temporaire
 
 # --- BONUS POUR PLUS TARD ---
