@@ -1,6 +1,7 @@
 [app]
 port = 8080
 env = "development"
+secret_key = "cle_super_secrete_pour_les_sessions"
 
 [database]
 driver = "sqlite"

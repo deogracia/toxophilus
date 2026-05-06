@@ -1,0 +1,59 @@
+package main
+
+import (
+	"log"
+
+	"github.com/deogracia/toxophilus/config"
+	"github.com/deogracia/toxophilus/database"
+	"github.com/deogracia/toxophilus/internal/handlers"
+	"github.com/deogracia/toxophilus/internal/middleware"
+	"github.com/deogracia/toxophilus/services"
+
+	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
+)
+
+func main() {
+	config.LoadConfig()
+	database.Connect()
+	services.InitDefaultSettings()
+
+	r := gin.Default()
+
+	// 1. Le Gatekeeper : Force le setup si la base est vierge
+	r.Use(middleware.EnsureSetup())
+
+	// 2. Routes de Configuration Initiale
+	r.GET("/setup", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "Veuillez envoyer un POST sur /setup/process avec admin_email et admin_password"})
+	})
+	r.POST("/setup/process", handlers.ProcessSetup)
+
+	// 3. Routes Publiques
+	r.POST("/login", handlers.LoginHandler)
+	r.POST("/logout", handlers.LogoutHandler)
+
+	// 4. Routes Protégées
+	api := r.Group("/api")
+	api.Use(middleware.AuthRequired())
+	{
+		// 	api.GET("/risers", handlers.ListRisers)
+
+		// on teste que ça se goupille bien.
+		api.GET("/me", func(ctx *gin.Context) {
+			userID, _ := ctx.Get("userID")
+			ctx.JSON(200, gin.H{"message": "Accès Autorisé", "ton_id_utilisateur": userID})
+
+		})
+	}
+
+	port := viper.GetString("app.port")
+	if port == "" {
+		port = "8080"
+	}
+
+	log.Printf("🚀 Démarrage du serveur sur http://localhost:%s\n", port)
+	if err := r.Run(":" + port); err != nil {
+		log.Fatalf("❌ Erreur lors du lancement du serveur: %v", err)
+	}
+}

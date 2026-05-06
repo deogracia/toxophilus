@@ -2,6 +2,7 @@
 
 # On définit powershell spécifiquement pour windows.
 set windows-shell := ["powershell.exe","-NoProfile","-command"]
+nom_application := "toxophilus"
 
 # Cible par défaut si on tape juste `just`
 default:
@@ -24,9 +25,18 @@ coverage:
 # --- BONUS POUR PLUS TARD ---
 
 # Compile l'application
+# On fixe l'extension pour windows
+
+extension := if os_family() == "windows" {".exe"} else {""}
+exe_name := nom_application + extension
+
 build:
-	go build -o archerie-app main.go
+	go build -o {{exe_name}} ./cmd/server/main.go
 
 # Lance l'application en local
 run:
-	go run main.go
+	go run ./cmd/server/main.go
+
+# Crée un administrateur (usage: just create-admin email mdp)
+create-admin email password:
+	go run ./cmd/create_user/main.go {{email}} {{password}}
