@@ -30,8 +30,18 @@ coverage:
 extension := if os_family() == "windows" {".exe"} else {""}
 exe_name := nom_application + extension
 
-build:
-	go build -o {{exe_name}} ./cmd/server/main.go
+_ensure-dir target_dir:
+	{{ if os() == "windows" { 
+	"powershell -NoProfile -Command \"New-Item -ItemType Directory -Force -Path " + target_dir + " | Out-Null\"" 
+	} else { 
+	"mkdir -p " + target_dir 
+	}}}
+
+build: (_ensure-dir "dist")
+	@echo "🔨 Compilation des exécutables..."
+	go build -o ./dist/{{nom_application}}-create-user{{extension}} ./cmd/create_user/main.go
+	go build -o ./dist/{{exe_name}} ./cmd/server/main.go
+	@cp config-example.toml ./dist/config-example.toml
 
 # Lance l'application en local
 run:

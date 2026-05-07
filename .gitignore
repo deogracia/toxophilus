@@ -27,3 +27,4 @@ go.work.sum
 # my files
 club_archerie.db
 config.toml
+dist/*
