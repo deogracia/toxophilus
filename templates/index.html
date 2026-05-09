@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ .titre }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <main class="container">
+
+        <nav>
+            <ul>
+                <li><strong>🎯 Club Toxophilus</strong></li>
+            </ul>
+            <ul>
+                <li><a href="#">Membres</a></li>
+                <li><a href="#">Matériel</a></li>
+                <li><a href="#"
+                       role="button"
+                       class="outline"
+                       hx-post="/api/logout"
+                       hx-swap="none">
+                       Déconnexion</a></li>
+            </ul>
+        </nav>
+
+        <hr>
+
+        <section>
+            <h2>Bienvenue dans ton interface de gestion</h2>
+            <p>
+                Ceci est une page générée par <strong>Go</strong>. Le design est géré automatiquement par <strong>Pico.css</strong>.
+                Si tu réduis la taille de ta fenêtre (comme sur un mobile), tu verras que tout s'adapte tout seul !
+            </p>
+
+            <article>
+                <header>Statistiques rapides</header>
+                Voici à quoi ressemble une "carte" (article) par défaut.
+                <footer>
+                    <button>Voir les membres</button>
+                </footer>
+            </article>
+        </section>
+
+    </main>
+</body>
+</html>

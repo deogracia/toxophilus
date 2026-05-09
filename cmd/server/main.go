@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net/http"
 
 	"github.com/deogracia/toxophilus/config"
 	"github.com/deogracia/toxophilus/database"
@@ -24,9 +25,30 @@ func main() {
 	services.InitDefaultSettings()
 
 	r := gin.Default()
+	// 0. CHARGEMENT DES TEMPLATES HTML ---
+	// Indique à Gin de lire tous les fichiers .html dans le dossier templates
+	r.LoadHTMLGlob("templates/*")
 
 	// 1. Le Gatekeeper : Force le setup si la base est vierge
 	r.Use(middleware.EnsureSetup())
+
+	// ==========================================
+	// 🌐 PARTIE FRONT-END (HTML)
+	// ==========================================
+
+	// Route publique pour afficher le formulaire de connexion
+	r.GET("/login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "login.html", gin.H{"titre": "Connexion - Toxophilus"})
+	})
+
+	// Groupe pour les pages HTML privées (le Dashboard)
+	web := r.Group("/")
+	web.Use(middleware.AuthRequired()) // On recycle notre middleware JWT !
+	{
+		web.GET("/", func(c *gin.Context) {
+			c.HTML(http.StatusOK, "index.html", gin.H{"titre": "Dashboard - Toxophilus"})
+		})
+	}
 
 	// 2. Routes de Configuration Initiale
 	r.GET("/setup", func(c *gin.Context) {
@@ -34,9 +56,13 @@ func main() {
 	})
 	r.POST("/setup/process", handlers.ProcessSetup)
 
+	// ==========================================
+	// ⚙️ PARTIE BACK-END (API REST JSON)
+	// ==========================================
+
 	// 3. Routes Publiques
-	r.POST("/login", handlers.LoginHandler)
-	r.POST("/logout", handlers.LogoutHandler)
+	r.POST("/api/login", handlers.LoginHandler)
+	r.POST("/api/logout", handlers.LogoutHandler)
 
 	// 4. Routes Protégées
 	api := r.Group("/api")

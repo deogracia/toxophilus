@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/deogracia/toxophilus/internal/auth"
 	"github.com/gin-gonic/gin"
@@ -13,7 +14,13 @@ func AuthRequired() gin.HandlerFunc {
 		// 1. Récupérer le token depuis le cookie
 		tokenString, err := c.Cookie("toxo_session")
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Accès restreint, veuillez vous connecter"})
+			// Si c'est une requête vers l'API, on renvoie une erreur JSON
+			if strings.HasPrefix(c.Request.URL.Path, "/api") {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Accès restreint"})
+			} else {
+				// Si c'est une requête web (comme "/"), on redirige vers le login
+				c.Redirect(http.StatusTemporaryRedirect, "/login")
+			}
 			c.Abort()
 			return
 		}
@@ -21,8 +28,14 @@ func AuthRequired() gin.HandlerFunc {
 		// 2. Valider le token avec notre fonction métier
 		claims, err := auth.ValidateToken(tokenString)
 		if err != nil {
-			// Le token est invalide, expiré, ou a été trafiqué
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Session invalide ou expirée, veuillez vous reconnecter"})
+			if strings.HasPrefix(c.Request.URL.Path, "/api") {
+				// Le token est invalide, expiré, ou a été trafiqué
+				// On garde un message précis pour l'API
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Session invalide ou expirée, veuillez vous reconnecter"})
+			} else {
+				// Pour le Web, retour à la case départ
+				c.Redirect(http.StatusTemporaryRedirect, "/login")
+			}
 			c.Abort()
 			return
 		}

@@ -59,5 +59,6 @@ func LoginHandler(c *gin.Context) {
 func LogoutHandler(c *gin.Context) {
 	// On écrase le cookie avec une durée de vie négative pour forcer le navigateur à le supprimer
 	c.SetCookie("toxo_session", "", -1, "/", "", false, true)
+	c.Header("HX-Redirect", "/login")
 	c.JSON(http.StatusOK, gin.H{"message": "Déconnexion réussie"})
 }

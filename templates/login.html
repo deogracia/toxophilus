@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ .titre }}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+</head>
+<body>
+    <main class="container" style="display: flex; align-items: center; min-height: 100vh;">
+        
+        <article style="width: 100%; max-width: 500px; margin: 0 auto;">
+            <header>
+                <h2 style="margin-bottom: 0;">🎯 Club Toxophilus</h2>
+            </header>
+            
+            <p>Veuillez vous connecter pour accéder à l'interface de gestion.</p>
+
+            <form 
+                hx-post="/api/login" 
+                hx-ext="json-enc" 
+                hx-on::after-request="if(event.detail.successful) window.location.href='/'"
+            >
+                <label for="email">Adresse Email</label>
+                <input type="email" id="email" name="email" required>
+
+                <label for="password">Mot de passe</label>
+                <input type="password" id="password" name="password" required>
+
+                <div id="error-message" style="color: var(--pico-del-color); margin-bottom: 1rem;"></div>
+
+                <button type="submit">Se connecter</button>
+            </form>
+        </article>
+
+    </main>
+
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js"></script>
+    
+    <script>
+        document.body.addEventListener('htmx:responseError', function(evt) {
+            const response = JSON.parse(evt.detail.xhr.response);
+            document.getElementById('error-message').innerText = response.error;
+        });
+    </script>
+</body>
+</html>
