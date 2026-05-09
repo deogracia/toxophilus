@@ -56,6 +56,20 @@ func main() {
 		api.POST("/members", handlers.CreateMember)
 		api.PUT("/members/:id", handlers.UpdateMember)
 		api.DELETE("/members/:id", handlers.DeleteMember)
+
+		// Gestion équipement
+		//  Poignée
+		api.GET("/risers", handlers.ListRisers)
+		api.POST("/risers", handlers.CreateRiser)
+		api.PUT("/risers/:id", handlers.UpdateRiser)
+		api.DELETE("/risers/:id", handlers.DeleteRiser)
+
+		// BRanches
+		api.GET("/limbs", handlers.ListLimbs)
+		api.POST("/limbs", handlers.CreateLimb)
+		api.PUT("/limbs/:id", handlers.UpdateLimb)
+		api.DELETE("/limbs/:id", handlers.DeleteLimb)
+
 	}
 
 	port := viper.GetString("app.port")
