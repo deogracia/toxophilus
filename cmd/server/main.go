@@ -15,6 +15,11 @@ import (
 
 func main() {
 	config.LoadConfig()
+
+	if viper.GetString("app.secret_key") == "" {
+		log.Fatal("🛑 ERREUR FATALE : la clé de configuration 'app.secret_key' est manquante. Le serveur refuse de démarrer pour des raisons de sécurité.")
+	}
+
 	database.Connect()
 	services.InitDefaultSettings()
 
@@ -45,6 +50,12 @@ func main() {
 			ctx.JSON(200, gin.H{"message": "Accès Autorisé", "ton_id_utilisateur": userID})
 
 		})
+
+		// Gestion des membres
+		api.GET("/members", handlers.ListMembers)
+		api.POST("/members", handlers.CreateMember)
+		api.PUT("/members/:id", handlers.UpdateMember)
+		api.DELETE("/members/:id", handlers.DeleteMember)
 	}
 
 	port := viper.GetString("app.port")
