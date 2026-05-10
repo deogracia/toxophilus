@@ -87,6 +87,18 @@ func main() {
 				"member": member,    // On passe les données de l'archer
 			})
 		})
+		// Page des archives (Membres supprimés)
+		web.GET("/members/archives", func(c *gin.Context) {
+			var archivedMembers []models.Member
+			// On va chercher uniquement les membres qui ont une date de suppression
+			database.DB.Unscoped().Where("deleted_at IS NOT NULL").Find(&archivedMembers)
+
+			c.HTML(http.StatusOK, "member_archives.html", gin.H{
+				"titre":   "Les alumnis - Toxophilus",
+				"active":  "membres", // On garde l'onglet Membres allumé
+				"membres": archivedMembers,
+			})
+		})
 	}
 
 	// 2. Routes de Configuration Initiale
@@ -121,6 +133,7 @@ func main() {
 		api.POST("/members", handlers.CreateMember)
 		api.PUT("/members/:id", handlers.UpdateMember)
 		api.DELETE("/members/:id", handlers.DeleteMember)
+		api.PUT("/members/:id/reactivate", handlers.ReactivateMember)
 
 		// Gestion équipement
 		//  Poignée

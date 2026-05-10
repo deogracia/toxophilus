@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+{{ template "head" . }}
+<body>
+    <main class="container">
+        {{ template "nav" . }}
+
+        <section>
+            <h2>🗃️ Archives du Club</h2>
+            <p><a href="/members" class="secondary">← Retour aux membres actifs</a></p>
+            
+            <figure>
+                <table class="striped">
+                    <thead>
+                        <tr>
+                            <th>Code Adhérent</th>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range .membres }}
+                        <tr>
+                            <td><strong>{{ .CodeAdherent }}</strong></td>
+                            <td>{{ .Nom }}</td>
+                            <td>{{ .Prenom }}</td>
+                            <td>
+                                <button class="outline" 
+                                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
+                                        hx-put="/api/members/{{ .ID }}/reactivate" 
+                                        hx-target="closest tr" 
+                                        hx-swap="delete" 
+                                        hx-confirm="Réactiver {{ .Prenom }} {{ .Nom }} ?">
+                                    Réactiver
+                                </button>
+                            </td>
+                        </tr>
+                        {{ else }}
+                        <tr><td colspan="4" style="text-align: center;">Aucun archer dans les archives.</td></tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </figure>
+        </section>
+    </main>
+</body>
+</html>

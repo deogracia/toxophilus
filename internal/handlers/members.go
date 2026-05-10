@@ -139,3 +139,17 @@ func DeleteMember(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Adhérent supprimé avec succès"})
 }
+
+// ReactivateMember restaure un membre supprimé (Soft Delete)
+func ReactivateMember(c *gin.Context) {
+	id := c.Param("id")
+
+	// Unscoped() permet d'ignorer le filtre de suppression de GORM.
+	// On remet le champ deleted_at à NULL.
+	if err := database.DB.Unscoped().Model(&models.Member{}).Where("id = ?", id).Update("deleted_at", nil).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Impossible de réactiver ce membre."})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Membre réactivé avec succès"})
+}
