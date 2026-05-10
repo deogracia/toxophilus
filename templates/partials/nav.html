@@ -1,11 +1,15 @@
 {{ define "nav" }}
 <nav>
     <ul>
-        <li><strong>🎯 Club Toxophilus</strong></li>
+        <li><a href="/" class="contrast"><strong>🎯 Club Toxophilus</strong></a></li>
     </ul>
     <ul>
-        <li><a href="/members">Membres</a></li>
-        <li><a href="#">Matériel</a></li>
+        <li><a href="/members"
+            {{ if eq .active "members" }}class="outline"{{ else }}class="secondary"{{ end }}
+            >Membres</a></li>
+        <li><a href="#"
+            {{ if eq .active "materiel" }}class="outline"{{ else }}class="secondary"{{ end }}
+            >Matériel</a></li>
         <li><a href="#"
                role="button"
                class="outline"

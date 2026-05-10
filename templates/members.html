@@ -10,6 +10,53 @@
 
         <section>
             <h2>Gestion des Archers</h2>
+                <details style="margin-bottom: 2rem;">
+                <summary role="button" class="secondary">➕ Ajouter un nouvel archer</summary>
+
+                <article>
+                    <form hx-post="/api/members"
+                          hx-ext="json-enc"
+                          hx-on::after-request="if(event.detail.successful) window.location.href = '/members' ">
+
+                        <div class="grid">
+                            <label>
+                                Code Adhérent
+                                <input type="text" name="code_adherent" placeholder="Ex: 2026-002" required>
+                            </label>
+                            <label>
+                                Date de Naissance
+                                <input type="date" name="date_naissance" required>
+                            </label>
+                        </div>
+
+                        <div class="grid">
+                            <label>
+                                Nom
+                                <input type="text" name="nom" required>
+                            </label>
+                            <label>
+                                Prénom
+                                <input type="text" name="prenom" required>
+                            </label>
+                        </div>
+
+                        <div class="grid">
+                            <label>
+                                Email
+                                <input type="email" name="email">
+                            </label>
+                            <label>
+                                Téléphone
+                                <input type="tel" name="telephone">
+                            </label>
+                        </div>
+
+                        <div id="form-error" style="color: var(--pico-del-color); margin-bottom: 1rem; font-weight: bold;"></div>
+
+                        <button type="submit">Enregistrer l'archer</button>
+                    </form>
+                </article>
+            </details>
             <figure>
                 <table class="striped">
                     <thead>
@@ -40,5 +87,27 @@
             </figure>
         </section>
     </main>
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js"></script>
+
+    <script>
+        // 1. Quand HTMX signale une erreur (ex: 409 Conflict)
+        document.body.addEventListener('htmx:responseError', function(evt) {
+            try {
+                // On transforme la réponse texte en objet JSON
+                const response = JSON.parse(evt.detail.xhr.response);
+                if (response.error) {
+                    // On injecte le message d'erreur de ton code Go dans la page
+                    document.getElementById('form-error').innerText = "❌ " + response.error;
+                }
+            } catch (e) {
+                document.getElementById('form-error').innerText = "❌ Une erreur de communication est survenue.";
+            }
+        });
+
+        // 2. Quand on relance une requête, on nettoie le message d'erreur précédent
+        document.body.addEventListener('htmx:beforeRequest', function() {
+            document.getElementById('form-error').innerText = "";
+        });
+    </script>
 </body>
 </html>

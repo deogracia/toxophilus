@@ -54,7 +54,9 @@ func main() {
 		web.GET("/", func(c *gin.Context) {
 
 			c.HTML(http.StatusOK, "index.html", gin.H{
-				"titre": "Dashboard - Toxophilus"})
+				"titre":  "Dashboard - Toxophilus",
+				"active": "accueil",
+			})
 		})
 		web.GET("/members", func(c *gin.Context) {
 			// On récupère la liste des membres
@@ -64,6 +66,7 @@ func main() {
 			c.HTML(http.StatusOK, "members.html", gin.H{
 				"titre":   "Gestion des membres - Toxophilus",
 				"membres": members,
+				"active":  "members",
 			})
 		})
 	}
