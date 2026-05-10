@@ -1,0 +1,17 @@
+{{ define "nav" }}
+<nav>
+    <ul>
+        <li><strong>🎯 Club Toxophilus</strong></li>
+    </ul>
+    <ul>
+        <li><a href="/members">Membres</a></li>
+        <li><a href="#">Matériel</a></li>
+        <li><a href="#"
+               role="button"
+               class="outline"
+               hx-post="/api/logout"
+               hx-swap="none">
+               Déconnexion</a></li>
+    </ul>
+</nav>
+{{ end }}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/internal/handlers"
 	"github.com/deogracia/toxophilus/internal/middleware"
+	"github.com/deogracia/toxophilus/models"
 	"github.com/deogracia/toxophilus/services"
 
 	"github.com/gin-gonic/gin"
@@ -26,8 +28,12 @@ func main() {
 
 	r := gin.Default()
 	// 0. CHARGEMENT DES TEMPLATES HTML ---
-	// Indique à Gin de lire tous les fichiers .html dans le dossier templates
-	r.LoadHTMLGlob("templates/*")
+	// On charge d'abord les pages principales
+	templ := template.Must(template.ParseGlob("templates/*.html"))
+	// On y ajoute (fusionne) les fragments du sous-dossier
+	template.Must(templ.ParseGlob("templates/partials/*.html"))
+
+	r.SetHTMLTemplate(templ)
 
 	// 1. Le Gatekeeper : Force le setup si la base est vierge
 	r.Use(middleware.EnsureSetup())
@@ -46,7 +52,19 @@ func main() {
 	web.Use(middleware.AuthRequired()) // On recycle notre middleware JWT !
 	{
 		web.GET("/", func(c *gin.Context) {
-			c.HTML(http.StatusOK, "index.html", gin.H{"titre": "Dashboard - Toxophilus"})
+
+			c.HTML(http.StatusOK, "index.html", gin.H{
+				"titre": "Dashboard - Toxophilus"})
+		})
+		web.GET("/members", func(c *gin.Context) {
+			// On récupère la liste des membres
+			var members []models.Member
+			database.DB.Find(&members)
+
+			c.HTML(http.StatusOK, "members.html", gin.H{
+				"titre":   "Gestion des membres - Toxophilus",
+				"membres": members,
+			})
 		})
 	}
 

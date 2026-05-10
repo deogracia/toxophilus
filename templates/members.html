@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+{{ template "head" .}}
+
+<body>
+    <main class="container">
+
+        {{ template "nav" .}}
+
+        <section>
+            <h2>Gestion des Archers</h2>
+            <figure>
+                <table class="striped">
+                    <thead>
+                        <tr>
+                            <th>Code Adhérent</th>
+                            <th>Nom</th>
+                            <th>Prénom</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range .membres }}
+                        <tr>
+                            <td><strong>{{ .CodeAdherent }}</strong></td>
+                            <td>{{ .Nom }}</td>
+                            <td>{{ .Prenom }}</td>
+                            <td>{{ .Email }}</td>
+                            <td>
+                                <button class="outline secondary" hx-delete="/api/members/{{ .ID }}" hx-target="closest tr" hx-swap="delete" hx-confirm="Confirmer la suppression ?">Supprimer</button>
+                            </td>
+                        </tr>
+                        {{ else }}
+                        <tr><td colspan="5" style="text-align: center;">Aucun membre.</td></tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </figure>
+        </section>
+    </main>
+</body>
+</html>
