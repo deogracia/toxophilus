@@ -16,6 +16,7 @@
             <form 
                 hx-post="/api/login" 
                 hx-ext="json-enc" 
+                hx-swap="none"
                 hx-on::after-request="if(event.detail.successful) window.location.href='/'"
             >
                 <label for="email">Adresse Email</label>

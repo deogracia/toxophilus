@@ -114,7 +114,10 @@ func UpdateMember(c *gin.Context) {
 	member.CodePostal = req.CodePostal
 
 	// 4. Sauvegarder en base
-	database.DB.Save(&member)
+	if err := database.DB.Save(&member).Error; err != nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "Impossible de modifier : ce Code Adhérent est peut être déjà utilisé par un autre archer."})
+		return
+	}
 
 	c.JSON(http.StatusOK, member)
 }

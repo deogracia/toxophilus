@@ -69,6 +69,24 @@ func main() {
 				"active":  "members",
 			})
 		})
+		// Page pour modifier un membre
+		web.GET("/members/edit/:id", func(c *gin.Context) {
+			id := c.Param("id")
+			var member models.Member
+
+			// On cherche le membre. S'il n'existe pas, on redirige vers la liste
+			if err := database.DB.First(&member, id).Error; err != nil {
+				c.Redirect(http.StatusTemporaryRedirect, "/members")
+				return
+			}
+
+			// On affiche la nouvelle page avec les données du membre pré-chargées
+			c.HTML(http.StatusOK, "member_edit.html", gin.H{
+				"titre":  "Modifier - Toxophilus",
+				"active": "membres", // Pour garder le menu "Membres" allumé !
+				"member": member,    // On passe les données de l'archer
+			})
+		})
 	}
 
 	// 2. Routes de Configuration Initiale

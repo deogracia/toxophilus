@@ -16,6 +16,7 @@
                 <article>
                     <form hx-post="/api/members"
                           hx-ext="json-enc"
+                          hx-swap="none"
                           hx-on::after-request="if(event.detail.successful) window.location.href = '/members' ">
 
                         <div class="grid">
@@ -75,8 +76,22 @@
                             <td>{{ .Nom }}</td>
                             <td>{{ .Prenom }}</td>
                             <td>{{ .Email }}</td>
-                            <td>
-                                <button class="outline secondary" hx-delete="/api/members/{{ .ID }}" hx-target="closest tr" hx-swap="delete" hx-confirm="Confirmer la suppression ?">Supprimer</button>
+                            <td style="display: flex; gap: 0.5rem;">
+                                <a href="/members/edit/{{ .ID }}"
+                                   role="button"
+                                   class="outline"
+                                   style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;">
+                                   Modifier
+                                </a>
+
+                                <button class="outline secondary"
+                                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
+                                        hx-delete="/api/members/{{ .ID }}"
+                                        hx-target="closest tr"
+                                        hx-swap="delete"
+                                        hx-confirm="Confirmer la suppression ?">
+                                    Supprimer
+                                </button>
                             </td>
                         </tr>
                         {{ else }}
