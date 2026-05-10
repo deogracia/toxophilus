@@ -133,6 +133,7 @@ func main() {
 		api.POST("/members", handlers.CreateMember)
 		api.PUT("/members/:id", handlers.UpdateMember)
 		api.DELETE("/members/:id", handlers.DeleteMember)
+		api.DELETE("/members/:id/hard", handlers.HardDeleteMember)
 		api.PUT("/members/:id/reactivate", handlers.ReactivateMember)
 
 		// Gestion équipement

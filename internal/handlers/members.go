@@ -153,3 +153,16 @@ func ReactivateMember(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Membre réactivé avec succès"})
 }
+
+// HardDeleteMember supprime définitivement un membre de la base de données
+func HardDeleteMember(c *gin.Context) {
+	id := c.Param("id")
+
+	// L'utilisation de Unscoped().Delete() supprime la ligne physiquement
+	if err := database.DB.Unscoped().Delete(&models.Member{}, id).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la suppression définitive"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Adhérent supprimé définitivement"})
+}

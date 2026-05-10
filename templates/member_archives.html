@@ -34,6 +34,14 @@
                                         hx-confirm="Réactiver {{ .Prenom }} {{ .Nom }} ?">
                                     Réactiver
                                 </button>
+                                <button class="outline"
+                                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem; border-color: var(--pico-del-color); color: var(--pico-del-color);"
+                                        hx-delete="/api/members/{{ .ID }}/hard"
+                                        hx-target="closest tr"
+                                        hx-swap="delete"
+                                        hx-confirm="ATTENTION : Cette action est irréversible. Toutes les données de {{ .Prenom }} {{ .Nom }} seront supprimées. Confirmer ?">
+                                    Supprimer Définitivement
+                                </button>
                             </td>
                         </tr>
                         {{ else }}
