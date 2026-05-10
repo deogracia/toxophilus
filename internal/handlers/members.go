@@ -184,3 +184,44 @@ func ExportMemberData(c *gin.Context) {
 	// On renvoie simplement l'objet member en JSON
 	c.JSON(http.StatusOK, member)
 }
+
+// GetMembersPage affiche la liste des membres actifs
+func GetMembersPage(c *gin.Context) {
+	var members []models.Member
+	database.DB.Find(&members)
+
+	c.HTML(http.StatusOK, "members.html", gin.H{
+		"titre":   "Gestion des Membres - Toxophilus",
+		"membres": members,
+		"active":  "membres",
+	})
+}
+
+// GetMemberEditPage affiche le formulaire de modification d'un membre
+func GetMemberEditPage(c *gin.Context) {
+	id := c.Param("id")
+	var member models.Member
+
+	if err := database.DB.First(&member, id).Error; err != nil {
+		c.Redirect(http.StatusTemporaryRedirect, "/members")
+		return
+	}
+
+	c.HTML(http.StatusOK, "member_edit.html", gin.H{
+		"titre":  "Modifier - Toxophilus",
+		"active": "membres",
+		"member": member,
+	})
+}
+
+// GetMemberArchivesPage affiche la liste des membres supprimés
+func GetMemberArchivesPage(c *gin.Context) {
+	var archivedMembers []models.Member
+	database.DB.Unscoped().Where("deleted_at IS NOT NULL").Find(&archivedMembers)
+
+	c.HTML(http.StatusOK, "member_archives.html", gin.H{
+		"titre":   "Archives - Les membres supprimés - Toxophilus",
+		"active":  "membres",
+		"membres": archivedMembers,
+	})
+}

@@ -9,7 +9,6 @@ import (
 	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/internal/handlers"
 	"github.com/deogracia/toxophilus/internal/middleware"
-	"github.com/deogracia/toxophilus/models"
 	"github.com/deogracia/toxophilus/services"
 
 	"github.com/gin-gonic/gin"
@@ -51,54 +50,16 @@ func main() {
 	web := r.Group("/")
 	web.Use(middleware.AuthRequired()) // On recycle notre middleware JWT !
 	{
-		web.GET("/", func(c *gin.Context) {
+		web.GET("/", handlers.GetDashboardPage)
 
-			c.HTML(http.StatusOK, "index.html", gin.H{
-				"titre":  "Dashboard - Toxophilus",
-				"active": "accueil",
-			})
-		})
-		web.GET("/members", func(c *gin.Context) {
-			// On récupère la liste des membres
-			var members []models.Member
-			database.DB.Find(&members)
+		// List des membres
+		web.GET("/members", handlers.GetMembersPage)
 
-			c.HTML(http.StatusOK, "members.html", gin.H{
-				"titre":   "Gestion des membres - Toxophilus",
-				"membres": members,
-				"active":  "members",
-			})
-		})
 		// Page pour modifier un membre
-		web.GET("/members/edit/:id", func(c *gin.Context) {
-			id := c.Param("id")
-			var member models.Member
+		web.GET("/members/edit/:id", handlers.GetMemberEditPage)
 
-			// On cherche le membre. S'il n'existe pas, on redirige vers la liste
-			if err := database.DB.First(&member, id).Error; err != nil {
-				c.Redirect(http.StatusTemporaryRedirect, "/members")
-				return
-			}
-
-			// On affiche la nouvelle page avec les données du membre pré-chargées
-			c.HTML(http.StatusOK, "member_edit.html", gin.H{
-				"titre":  "Modifier - Toxophilus",
-				"active": "membres", // Pour garder le menu "Membres" allumé !
-				"member": member,    // On passe les données de l'archer
-			})
-		})
 		// Page des archives (Membres supprimés)
-		web.GET("/members/archives", func(c *gin.Context) {
-			var archivedMembers []models.Member
-			// On va chercher uniquement les membres qui ont une date de suppression
-			database.DB.Unscoped().Where("deleted_at IS NOT NULL").Find(&archivedMembers)
-
-			c.HTML(http.StatusOK, "member_archives.html", gin.H{
-				"titre":   "Les alumnis - Toxophilus",
-				"active":  "membres", // On garde l'onglet Membres allumé
-				"membres": archivedMembers,
-			})
-		})
+		web.GET("/members/archives", handlers.GetMemberArchivesPage)
 
 		// les routes spécifiques aux matériel
 		web.GET("/materiel", handlers.GetMaterielPage)
