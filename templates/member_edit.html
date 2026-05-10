@@ -7,6 +7,7 @@
 
         <section>
             <p><a href="/members" class="secondary">← Retour à la liste des membres</a></p>
+            <p><a href="/api/members/{{ .member.ID }}/export" class="secondary" download>📥 Télécharger les informations (RGPD)</a></p>
             <h2>Modifier les informations de {{ .member.Prenom }} {{ .member.Nom }}</h2>
             
             <article>

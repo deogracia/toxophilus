@@ -166,3 +166,21 @@ func HardDeleteMember(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Adhérent supprimé définitivement"})
 }
+
+func ExportMemberData(c *gin.Context) {
+	id := c.Param("id")
+	var member models.Member
+
+	// On récupère le membre (même s'il est en archives)
+	if err := database.DB.Unscoped().First(&member, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Membre introuvable"})
+		return
+	}
+
+	// On définit les headers pour forcer le navigateur à télécharger un fichier
+	fileName := "export_" + member.Nom + "_" + member.Prenom + ".json"
+	c.Header("Content-Disposition", "attachment; filename="+fileName)
+
+	// On renvoie simplement l'objet member en JSON
+	c.JSON(http.StatusOK, member)
+}

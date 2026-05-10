@@ -20,7 +20,7 @@ func TestAuthRequired(t *testing.T) {
 	r.Use(AuthRequired())
 
 	// Route de test qui s'exécute uniquement si le middleware laisse passer
-	r.GET("/protected", func(c *gin.Context) {
+	r.GET("/api/protected", func(c *gin.Context) {
 		_, exists := c.Get("userID")
 		if !exists {
 			c.Status(http.StatusInternalServerError) // Ne devrait jamais arriver si le middleware marche
@@ -33,7 +33,7 @@ func TestAuthRequired(t *testing.T) {
 
 	t.Run("Sans Cookie", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/protected", nil)
+		req, _ := http.NewRequest("GET", "/api/protected", nil)
 		r.ServeHTTP(w, req)
 
 		if w.Code != http.StatusUnauthorized {
@@ -43,7 +43,7 @@ func TestAuthRequired(t *testing.T) {
 
 	t.Run("Avec un Cookie Invalide", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/protected", nil)
+		req, _ := http.NewRequest("GET", "/api/protected", nil)
 		req.AddCookie(&http.Cookie{Name: "toxo_session", Value: "ceci_nest_pas_un_token_valide"})
 		r.ServeHTTP(w, req)
 
@@ -57,7 +57,7 @@ func TestAuthRequired(t *testing.T) {
 		validToken, _ := auth.GenerateToken(99)
 
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", "/protected", nil)
+		req, _ := http.NewRequest("GET", "/api/protected", nil)
 		req.AddCookie(&http.Cookie{Name: "toxo_session", Value: validToken})
 		r.ServeHTTP(w, req)
 
