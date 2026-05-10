@@ -44,5 +44,6 @@ func Connect() {
 	DB.AutoMigrate(
 		&models.User{}, &models.Member{}, &models.Limb{},
 		&models.Riser{}, &models.Contract{}, &models.Setting{},
+		&models.Poignee{}, &models.Branche{},
 	)
 }

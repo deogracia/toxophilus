@@ -99,6 +99,9 @@ func main() {
 				"membres": archivedMembers,
 			})
 		})
+
+		// les routes spécifiques aux matériel
+		web.GET("/materiel", handlers.GetMaterielPage)
 	}
 
 	// 2. Routes de Configuration Initiale
