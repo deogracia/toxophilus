@@ -10,3 +10,10 @@ Application de gestion de la location de matériel de tir à l'arc
 nécessite 
     * [just](https://github.com/casey/just)
     * go >= 1.26.2 pour la coimpilation
+
+Lancer sans générer un executable
+
+* sur win11/powershell
+```powershell
+just test; $env:TOXO_APP_SECRET_KEY="super, secretkey#"; just run
+```
