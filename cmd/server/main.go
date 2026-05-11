@@ -62,7 +62,8 @@ func main() {
 		web.GET("/members/archives", handlers.GetMemberArchivesPage)
 
 		// les routes spécifiques aux matériel
-		web.GET("/materiel", handlers.GetMaterielPage)
+		web.GET("/equipement", handlers.GetEquipementPage)
+
 	}
 
 	// 2. Routes de Configuration Initiale
@@ -108,7 +109,7 @@ func main() {
 		api.PUT("/risers/:id", handlers.UpdateRiser)
 		api.DELETE("/risers/:id", handlers.DeleteRiser)
 
-		// BRanches
+		// Branches
 		api.GET("/limbs", handlers.ListLimbs)
 		api.POST("/limbs", handlers.CreateLimb)
 		api.PUT("/limbs/:id", handlers.UpdateLimb)
