@@ -34,13 +34,13 @@ type CreateLimbRequest struct {
 	Prix        string `json:"prix"`
 }
 
-func convertStringsRiser(req CreateRiserRequest) (anneeAchat int, prix float64, err error) {
+func parseEquipementFields(anneeStr string, prixStr string) (anneeAchat int, prix float64, err error) {
 	// Gestion des champs AnneeAchat et prix de la requêtte -> la bdd
 	// 1. Gestion de AnneeAchat, string -> int
 	anneeInt := 0
-	if req.AnneeAchat != "" {
+	if anneeStr != "" {
 		var err error
-		anneeInt, err = strconv.Atoi(req.AnneeAchat)
+		anneeInt, err = strconv.Atoi(anneeStr)
 		if err != nil {
 			return 0, 0.0, errors.New("Erreur de conversion: l'année d'achat doit être un nombre entier valide.")
 		}
@@ -48,34 +48,9 @@ func convertStringsRiser(req CreateRiserRequest) (anneeAchat int, prix float64, 
 
 	// 2. gestion de Prix, string -> float64
 	prixFloat := 0.0
-	if req.Prix != "" {
+	if prixStr != "" {
 		var err error
-		prixFloat, err = strconv.ParseFloat(req.Prix, 64)
-		if err != nil {
-			return 0, 0.0, errors.New("Erreur de conversion: le prix doit être un montant valide (ex: 153.52).")
-		}
-	}
-
-	return anneeInt, prixFloat, nil
-}
-
-func convertStringsLimb(req CreateLimbRequest) (anneeAchat int, prix float64, err error) {
-	// Gestion des champs AnneeAchat et prix de la requêtte -> la bdd
-	// 1. Gestion de AnneeAchat, string -> int
-	anneeInt := 0
-	if req.AnneeAchat != "" {
-		var err error
-		anneeInt, err = strconv.Atoi(req.AnneeAchat)
-		if err != nil {
-			return 0, 0.0, errors.New("Erreur de conversion: l'année d'achat doit être un nombre entier valide.")
-		}
-	}
-
-	// 2. gestion de Prix, string -> float64
-	prixFloat := 0.0
-	if req.Prix != "" {
-		var err error
-		prixFloat, err = strconv.ParseFloat(req.Prix, 64)
+		prixFloat, err = strconv.ParseFloat(prixStr, 64)
 		if err != nil {
 			return 0, 0.0, errors.New("Erreur de conversion: le prix doit être un montant valide (ex: 153.52).")
 		}
@@ -100,7 +75,7 @@ func CreateRiser(c *gin.Context) {
 
 	// Gestion des champs AnneeAchat et prix de la requêtte -> la bdd
 
-	anneeInt, prixFloat, err = convertStringsRiser(req)
+	anneeInt, prixFloat, err = parseEquipementFields(req.AnneeAchat, req.Prix)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -152,7 +127,7 @@ func UpdateRiser(c *gin.Context) {
 		err       error   = nil
 	)
 
-	anneeInt, prixFloat, err = convertStringsRiser(req)
+	anneeInt, prixFloat, err = parseEquipementFields(req.AnneeAchat, req.Prix)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -198,7 +173,7 @@ func CreateLimb(c *gin.Context) {
 		err       error   = nil
 	)
 
-	anneeInt, prixFloat, err = convertStringsLimb(req)
+	anneeInt, prixFloat, err = parseEquipementFields(req.AnneeAchat, req.Prix)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
@@ -250,7 +225,7 @@ func UpdateLimb(c *gin.Context) {
 		err       error   = nil
 	)
 
-	anneeInt, prixFloat, err = convertStringsLimb(req)
+	anneeInt, prixFloat, err = parseEquipementFields(req.AnneeAchat, req.Prix)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 	}
