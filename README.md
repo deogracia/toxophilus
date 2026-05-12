@@ -9,7 +9,7 @@ Application de gestion de la location de matériel de tir à l'arc
 
 nécessite 
     * [just](https://github.com/casey/just)
-    * go >= 1.26.2 pour la coimpilation
+    * go >= 1.26.2 pour la compilation
 
 Lancer sans générer un executable
 
