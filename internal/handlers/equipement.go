@@ -97,6 +97,9 @@ func CreateRiser(c *gin.Context) {
 		return
 	}
 
+	// On envoie un ordre prioritaire à HTMX pour forcer le changement de page
+	c.Header("HX-Redirect", "/equipement")
+
 	c.JSON(http.StatusCreated, riser)
 }
 
@@ -142,6 +145,9 @@ func UpdateRiser(c *gin.Context) {
 	riser.Prix = prixFloat
 
 	database.DB.Save(&riser)
+
+	// On envoie un ordre prioritaire à HTMX pour forcer le changement de page
+	c.Header("HX-Redirect", "/equipement")
 	c.JSON(http.StatusOK, riser)
 }
 
@@ -155,6 +161,16 @@ func DeleteRiser(c *gin.Context) {
 	}
 
 	database.DB.Delete(&riser)
+
+	// 1. Si la requête vient de l'interface web (HTMX)
+	if c.GetHeader("HX-Request") == "true" {
+		// On renvoie du vide pour que la ligne du tableau s'évapore proprement
+		c.String(http.StatusOK, "")
+		return
+	}
+
+	// 2. Si la requête vient d'ailleurs (Postman, future application mobile, etc.)
+	// On renvoie un vrai message JSON clair pour l'API
 	c.JSON(http.StatusOK, gin.H{"message": "Poignée supprimée du catalogue"})
 }
 
@@ -194,6 +210,9 @@ func CreateLimb(c *gin.Context) {
 		c.JSON(http.StatusConflict, gin.H{"error": "Impossible d'ajouter les branches (Numéro de série déjà existant ?)"})
 		return
 	}
+
+	// On envoie un ordre prioritaire à HTMX pour forcer le changement de page
+	c.Header("HX-Redirect", "/equipement")
 
 	c.JSON(http.StatusCreated, limb)
 }
@@ -240,6 +259,9 @@ func UpdateLimb(c *gin.Context) {
 	limb.Prix = prixFloat
 
 	database.DB.Save(&limb)
+
+	// On envoie un ordre prioritaire à HTMX pour forcer le changement de page
+	c.Header("HX-Redirect", "/equipement")
 	c.JSON(http.StatusOK, limb)
 }
 
@@ -253,6 +275,16 @@ func DeleteLimb(c *gin.Context) {
 	}
 
 	database.DB.Delete(&limb)
+
+	// 1. Si la requête vient de l'interface web (HTMX)
+	if c.GetHeader("HX-Request") == "true" {
+		// On renvoie du vide pour que la ligne du tableau s'évapore proprement
+		c.String(http.StatusOK, "")
+		return
+	}
+
+	// 2. Si la requête vient d'ailleurs (Postman, future application mobile, etc.)
+	// On renvoie un vrai message JSON clair pour l'API
 	c.JSON(http.StatusOK, gin.H{"message": "Branches supprimées du catalogue"})
 }
 

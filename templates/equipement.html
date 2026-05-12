@@ -16,7 +16,8 @@
                     </header>
                     <details style="margin-bottom: 1rem;">
                         <summary role="button" class="secondary outline">➕ Ajouter une poignée</summary>
-                        <form hx-post="/api/risers" hx-ext="json-enc" hx-swap="none" hx-on::after-request="if(event.detail.successful) window.location.href='/equipement'">
+                        <form hx-post="/api/risers"
+                              hx-ext="json-enc">
                             <div class="grid">
                                 <label>Numéro de série <input type="text" name="numero_serie" placeholder="Ex: P-001" required></label>
                                 <label>Marque <input type="text" name="marque"></label>
@@ -68,6 +69,7 @@
                                     <th>Modèle</th>
                                     <th>Latéralité</th>
                                     <th>Taille</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -77,6 +79,16 @@
                                     <td>{{ .Marque }} {{ .Modele }}</td>
                                     <td>{{ .Lateralite }}</td>
                                     <td>{{ .Taille }}</td>
+                                    <td>
+                                        <button class="outline contrast"
+                                                style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
+                                                hx-delete="/api/risers/{{ .ID }}"
+                                                hx-target="closest tr"
+                                                hx-swap="delete"
+                                                hx-confirm="Supprimer cette poignée?">
+                                                🗑️
+                                            </button>
+                                    </td>
                                 </tr>
                                 {{ else }}
                                 <tr><td colspan="4" style="text-align: center;">Aucune poignée en stock.</td></tr>
@@ -92,7 +104,8 @@
                     </header>
                     <details style="margin-bottom: 1rem;">
                         <summary role="button" class="secondary outline">➕ Ajouter des branches</summary>
-                        <form hx-post="/api/limbs" hx-ext="json-enc" hx-swap="none" hx-on::after-request="if(event.detail.successful) window.location.href='/equipement'">
+                        <form hx-post="/api/limbs"
+                              hx-ext="json-enc">
                             <div class="grid">
                                 <label>Numéro de série <input type="text" name="numero_serie" placeholder="Ex: B-001" required></label>
                                 <label>Marque <input type="text" name="marque"></label>
@@ -120,6 +133,7 @@
                                     <th>Modèle</th>
                                     <th>Puissance</th>
                                     <th>Taille</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -129,6 +143,16 @@
                                     <td>{{ .Marque }} {{ .Modele }}</td>
                                     <td>{{ .Puissance }} lbs</td>
                                     <td>{{ .Taille }}</td>
+                                    <td>
+                                        <button class="outline contrast"
+                                                style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
+                                                hx-delete="/api/limbs/{{ .ID }}"
+                                                hx-target="closest tr"
+                                                hx-swap="delete"
+                                                hx-confirm="Supprimer cette poignée?">
+                                                🗑️
+                                            </button>
+                                    </td>
                                 </tr>
                                 {{ else }}
                                 <tr><td colspan="4" style="text-align: center;">Aucune branche en stock.</td></tr>
