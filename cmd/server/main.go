@@ -67,9 +67,7 @@ func main() {
 	}
 
 	// 2. Routes de Configuration Initiale
-	r.GET("/setup", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "Veuillez envoyer un POST sur /setup/process avec admin_email et admin_password"})
-	})
+	r.GET("/setup", handlers.GetSetupPage)
 	r.POST("/setup/process", handlers.ProcessSetup)
 
 	// ==========================================

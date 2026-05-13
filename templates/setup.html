@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+{{ template "head" . }}
+<body>
+    <main class="container" style="max-width: 500px; margin-top: 10vh;">
+        <article>
+            <header style="text-align: center;">
+                <h2 style="margin-bottom: 0;">🏹 Toxophilus</h2>
+                <p>Bienvenue ! Configuration initiale</p>
+            </header>
+            
+            <p>Il semble que ce soit votre premier démarrage. Veuillez créer le compte administrateur pour accéder au tableau de bord.</p>
+
+            <form hx-post="/setup/process" hx-ext="json-enc">
+                <label>
+                    Email
+                    <input type="email" name="admin_email" placeholder="admin@club.fr" required>
+                </label>
+                
+                <label>
+                    Mot de passe
+                    <input type="password" name="admin_password" placeholder="••••••••" required>
+                </label>
+
+                <div id="error-setup" style="color: var(--pico-del-color); margin-bottom: 1rem; font-weight: bold;"></div>
+
+                <button type="submit">Créer l'administrateur</button>
+            </form>
+
+            <footer style="text-align: center; font-size: 0.8rem; color: var(--pico-muted-color);">
+                <p style="margin-bottom: 0;">Astuce : Vous pouvez aussi initialiser la base de données via l'outil CLI <code>toxophilus-create-user</code>.</p>
+            </footer>
+        </article>
+    </main>
+
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js"></script>
+    <script>
+        document.body.addEventListener('htmx:responseError', function(evt) {
+            try {
+                const response = JSON.parse(evt.detail.xhr.response);
+                if (response.error) {
+                    const errorDiv = document.getElementById('error-setup');
+                    if(errorDiv) errorDiv.innerText = "❌ " + response.error;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        });
+
+        document.body.addEventListener('htmx:beforeRequest', function(evt) {
+            const errorDiv = document.getElementById('error-setup');
+            if(errorDiv) errorDiv.innerText = "";
+        });
+    </script>
+</body>
+</html>

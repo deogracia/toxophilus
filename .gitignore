@@ -28,3 +28,4 @@ go.work.sum
 club_archerie.db
 config.toml
 dist/*
+toxophilus.db

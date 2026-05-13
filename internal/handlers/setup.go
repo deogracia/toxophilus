@@ -45,5 +45,19 @@ func ProcessSetup(c *gin.Context) {
 		return
 	}
 
+	if c.GetHeader("HX-Request") == "true" {
+		// On force la redirection vers la page de connexion
+		c.Header("HX-Redirect", "/login")
+		c.Status(http.StatusNoContent)
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Administrateur créé avec succès ! Vous pouvez maintenant vous connecter."})
+}
+
+// GetSetupPage affiche la page de création du premier compte
+func GetSetupPage(c *gin.Context) {
+	c.HTML(http.StatusOK, "setup.html", gin.H{
+		"titre": "Premier lancement - Toxophilus",
+	})
 }
