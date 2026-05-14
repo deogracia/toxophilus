@@ -174,6 +174,23 @@ func DeleteRiser(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Poignée supprimée du catalogue"})
 }
 
+// GetEditRiserPage affiche le formulaire de modification d'une poignée
+func GetEditRiserPage(c *gin.Context) {
+	id := c.Param("id")
+	var riser models.Riser
+	if err := database.DB.First(&riser, id).Error; err != nil {
+		// Tu peux créer un error.html plus tard, ou rediriger
+		c.HTML(http.StatusNotFound, "index.html", gin.H{"error": "Poignée introuvable"})
+		return
+	}
+
+	c.HTML(http.StatusOK, "equipement_edit.html", gin.H{
+		"titre": "Modifier la poignée " + riser.NumeroSerie,
+		"type":  "riser",
+		"item":  riser,
+	})
+}
+
 // --- BRANCHES (LIMBS) ---
 
 func CreateLimb(c *gin.Context) {
@@ -302,5 +319,21 @@ func GetEquipementPage(c *gin.Context) {
 		"active":   "equipement", // Allume l'onglet "Matériel" dans la navigation
 		"poignees": risers,
 		"branches": limbs,
+	})
+}
+
+// GetEditLimbPage affiche le formulaire de modification de branches
+func GetEditLimbPage(c *gin.Context) {
+	id := c.Param("id")
+	var limb models.Limb
+	if err := database.DB.First(&limb, id).Error; err != nil {
+		c.HTML(http.StatusNotFound, "index.html", gin.H{"error": "Branches introuvables"})
+		return
+	}
+
+	c.HTML(http.StatusOK, "equipement_edit.html", gin.H{
+		"titre": "Modifier les branches " + limb.NumeroSerie, // <-- Corrigé ici !
+		"type":  "limb",
+		"item":  limb,
 	})
 }

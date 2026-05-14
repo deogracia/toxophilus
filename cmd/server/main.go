@@ -63,6 +63,8 @@ func main() {
 
 		// les routes spécifiques aux matériel
 		web.GET("/equipement", handlers.GetEquipementPage)
+		web.GET("/equipement/edit/riser/:id", handlers.GetEditRiserPage)
+		web.GET("/equipement/edit/limb/:id", handlers.GetEditLimbPage)
 
 	}
 

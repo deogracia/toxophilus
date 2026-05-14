@@ -80,6 +80,9 @@
                                     <td>{{ .Lateralite }}</td>
                                     <td>{{ .Taille }}</td>
                                     <td>
+                                        <a href="/equipement/edit/riser/{{ .ID }}" role="button" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;" title="Modifier">
+                                            ✏️
+                                        </a>
                                         <button class="outline contrast"
                                                 style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
                                                 hx-delete="/api/risers/{{ .ID }}"
@@ -144,6 +147,9 @@
                                     <td>{{ .Puissance }} lbs</td>
                                     <td>{{ .Taille }}</td>
                                     <td>
+                                        <a href="/equipement/edit/riser/{{ .ID }}" role="button" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;" title="Modifier">
+                                            ✏️
+                                        </a>
                                         <button class="outline contrast"
                                                 style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
                                                 hx-delete="/api/limbs/{{ .ID }}"

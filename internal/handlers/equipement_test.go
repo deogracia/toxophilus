@@ -161,3 +161,83 @@ func TestLimbCRUD(t *testing.T) {
 		}
 	})
 }
+
+func TestGetEditRiserPage(t *testing.T) {
+	r := setupEquipmentTestDB()
+
+	// Chargement des templates pour que c.HTML fonctionne
+	// (Le chemin correspond à l'arborescence depuis le dossier handlers)
+	r.LoadHTMLGlob("../../templates/partials/*.html")
+	r.LoadHTMLGlob("../../templates/*.html")
+
+	// Ajout de la route à tester
+	r.GET("/equipement/edit/riser/:id", GetEditRiserPage)
+
+	// Création d'une poignée directement en base
+	riser := models.Riser{
+		NumeroSerie: "EDIT-RISER-001",
+		Marque:      "Win&Win",
+	}
+	database.DB.Create(&riser)
+
+	// --- TEST A : La poignée existe (Succès) ---
+	t.Run("Succès - Poignée trouvée", func(t *testing.T) {
+		// riser.ID devrait être 1 car la base est recréée vide
+		req, _ := http.NewRequest("GET", "/equipement/edit/riser/1", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Errorf("Attendu 200 OK, obtenu %d", w.Code)
+		}
+	})
+
+	// --- TEST B : La poignée n'existe pas (Erreur 404) ---
+	t.Run("Erreur 404 - Poignée introuvable", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/equipement/edit/riser/9999", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		if w.Code != http.StatusNotFound {
+			t.Errorf("Attendu 404 Not Found, obtenu %d", w.Code)
+		}
+	})
+}
+
+func TestGetEditLimbPage(t *testing.T) {
+	r := setupEquipmentTestDB()
+
+	r.LoadHTMLGlob("../../templates/partials/*.html")
+	r.LoadHTMLGlob("../../templates/*.html")
+
+	r.GET("/equipement/edit/limb/:id", GetEditLimbPage)
+
+	// Création de branches directement en base
+	limb := models.Limb{
+		NumeroSerie: "EDIT-LIMB-001",
+		Puissance:   "24 lbs",
+	}
+	database.DB.Create(&limb)
+
+	// --- TEST A : Les branches existent (Succès) ---
+	t.Run("Succès - Branches trouvées", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/equipement/edit/limb/1", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Errorf("Attendu 200 OK, obtenu %d", w.Code)
+		}
+	})
+
+	// --- TEST B : Les branches n'existent pas (Erreur 404) ---
+	t.Run("Erreur 404 - Branches introuvables", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/equipement/edit/limb/9999", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		if w.Code != http.StatusNotFound {
+			t.Errorf("Attendu 404 Not Found, obtenu %d", w.Code)
+		}
+	})
+}
