@@ -135,7 +135,7 @@ func TestLimbCRUD(t *testing.T) {
 
 	// 3. Update
 	t.Run("Update Limb", func(t *testing.T) {
-		body := CreateRiserRequest{
+		body := CreateLimbRequest{
 			NumeroSerie: "L-TEST-01-MOD",
 			Marque:      "Kinetic",
 		}
