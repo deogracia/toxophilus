@@ -9,14 +9,20 @@ default:
 	@just --list
 
 # Lance tous les tests unitaires du projet
+[group('On my workstation')]
+[group('tests & coverage')]
 test:
 	go test ./...
 
 # Lance les tests avec plus de détails (verbose)
+[group('On my workstation')]
+[group('tests & coverage')]
 test-v:
 	go test -v ./...
 
 # Génère et affiche la couverture de code dans le navigateur
+[group('On my workstation')]
+[group('tests & coverage')]
 coverage:
 	go test -coverprofile coverage.out ./...
 	go tool cover -html coverage.out
@@ -37,6 +43,8 @@ _ensure-dir target_dir:
 	"mkdir -p " + target_dir 
 	}}}
 
+[group('On my workstation')]
+[group('Building')]
 build: (_ensure-dir "dist")
 	@echo "🔨 Compilation des exécutables..."
 	go build -o ./dist/{{nom_application}}-create-user{{extension}} ./cmd/create_user/main.go
@@ -44,9 +52,16 @@ build: (_ensure-dir "dist")
 	@cp config-example.toml ./dist/config-example.toml
 
 # Lance l'application en local
+[group('On my workstation')]
 run:
 	go run ./cmd/server/main.go
 
 # Crée un administrateur (usage: just create-admin email mdp)
+[group('On my workstation')]
 create-admin email password:
 	go run ./cmd/create_user/main.go {{email}} {{password}}
+
+# Lance les tests puis l'application sans la compiler
+[group('On my workstation')]
+run-dev: test && run
+	$env:TOXO_APP_SECRET_KEY="super, secretkey#"
