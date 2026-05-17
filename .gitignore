@@ -29,3 +29,4 @@ club_archerie.db
 config.toml
 dist/*
 toxophilus.db
+static/favicon.ico
