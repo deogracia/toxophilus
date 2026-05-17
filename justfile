@@ -1,4 +1,4 @@
-# --- ARCHERIE CLUB JUSTFILE ---
+# --- toxophilus JUSTFILE ---
 
 # On définit powershell spécifiquement pour windows.
 set windows-shell := ["powershell.exe","-NoProfile","-command"]
@@ -65,3 +65,8 @@ create-admin email password:
 [group('On my workstation')]
 run-dev: test && run
 	$env:TOXO_APP_SECRET_KEY="super, secretkey#"
+
+# Génère le fichier static/favicon.ico contenant les tailles 16,32,48,128 et 256
+[group('On my workstation')]
+generate-favicon:
+	@powershell -NoProfile -ExecutionPolicy Bypass -File "./build-tools/generate-favicon.ps1"
