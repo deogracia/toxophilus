@@ -70,3 +70,8 @@ run-dev: test
 [group('On my workstation')]
 generate-favicon:
 	@powershell -NoProfile -ExecutionPolicy Bypass -File "./build-tools/generate-favicon.ps1"
+
+[group('On my workstation')]
+etat-projet:
+	tree /F /A > arborescence.txt
+	@powershell -NoProfile -ExecutionPolicy Bypass -File "./build-tools/all-files-in-one.ps1"
