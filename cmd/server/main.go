@@ -1,15 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/deogracia/toxophilus/config"
 	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/internal/handlers"
 	"github.com/deogracia/toxophilus/internal/middleware"
 	"github.com/deogracia/toxophilus/services"
+	"github.com/deogracia/toxophilus/static"
+	"github.com/deogracia/toxophilus/templates"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -26,13 +30,36 @@ func main() {
 	services.InitDefaultSettings()
 
 	r := gin.Default()
-	// 0. CHARGEMENT DES TEMPLATES HTML ---
-	// On charge d'abord les pages principales
-	templ := template.Must(template.ParseGlob("templates/*.html"))
-	// On y ajoute (fusionne) les fragments du sous-dossier
-	template.Must(templ.ParseGlob("templates/partials/*.html"))
+	// 0. Gestion de l'environnement (Prduction par défaut)
+	env := os.Getenv("APP_ENV")
+	if env == "" {
+		env = "production"
+	}
 
-	r.SetHTMLTemplate(templ)
+	if env == "development" {
+		fmt.Println("🚀 Démarrage en mode DÉVELOPPEMENT (lecture des templates sur disque)")
+		// 1a. [DEV] CHARGEMENT DES TEMPLATES HTML ---
+		// On utilise os.DirFS pour créer un système de fichiers virtuel pointant sur le dossier physique
+		templ := template.Must(template.ParseFS(os.DirFS("templates"), "*.html", "partials/*.html"))
+		r.SetHTMLTemplate(templ)
+
+		r.StaticFile("/favicon.ico", "static/favicon.ico")
+
+	} else {
+
+		gin.SetMode(gin.ReleaseMode) // on est en prod
+
+		fmt.Println("📦 Démarrage en mode PRODUCTION (lecture des templates depuis l'exécutable)")
+		// 1b. [PROD] CHARGEMENT DES TEMPLATES HTML ---
+		// On charge d'abord les pages depuis l'exécutable
+		templ := template.Must(template.ParseFS(templates.TemplateFS, "*.html", "partials/*.html"))
+		// On y ajoute (fusionne) les fragments du sous-dossier
+		template.Must(templ.ParseGlob("templates/partials/*.html"))
+		r.SetHTMLTemplate(templ)
+
+		r.StaticFileFS("/favicon.ico", "favicon.ico", http.FS(static.StaticFS))
+
+	}
 
 	// 1. Le Gatekeeper : Force le setup si la base est vierge
 	r.Use(middleware.EnsureSetup())

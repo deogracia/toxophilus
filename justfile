@@ -63,8 +63,8 @@ create-admin email password:
 
 # Lance les tests puis l'application sans la compiler
 [group('On my workstation')]
-run-dev: test && run
-	$env:TOXO_APP_SECRET_KEY="super, secretkey#"
+run-dev: test
+	$env:TOXO_APP_SECRET_KEY="super, secretkey#"; $env:APP_ENV="development"; go run ./cmd/server/main.go
 
 # Génère le fichier static/favicon.ico contenant les tailles 16,32,48,128 et 256
 [group('On my workstation')]
