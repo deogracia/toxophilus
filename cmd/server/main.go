@@ -67,6 +67,7 @@ func setupRouter(env string) *gin.Engine {
 		web.GET("/equipement", handlers.GetEquipementPage)
 		web.GET("/equipement/edit/riser/:id", handlers.GetEditRiserPage)
 		web.GET("/equipement/edit/limb/:id", handlers.GetEditLimbPage)
+		web.GET("/equipement/archives", handlers.GetEquipementArchivesPage)
 
 	}
 
@@ -110,12 +111,16 @@ func setupRouter(env string) *gin.Engine {
 		api.POST("/risers", handlers.CreateRiser)
 		api.PUT("/risers/:id", handlers.UpdateRiser)
 		api.DELETE("/risers/:id", handlers.DeleteRiser)
+		api.DELETE("/risers/:id/hard", handlers.HardDeleteRiser)
+		api.PUT("/risers/:id/reactivate", handlers.ReactivateRiser)
 
 		// Branches
 		api.GET("/limbs", handlers.ListLimbs)
 		api.POST("/limbs", handlers.CreateLimb)
 		api.PUT("/limbs/:id", handlers.UpdateLimb)
 		api.DELETE("/limbs/:id", handlers.DeleteLimb)
+		api.DELETE("/limbs/:id/hard", handlers.HardDeleteLimb)
+		api.PUT("/limbs/:id/reactivate", handlers.ReactivateLimb)
 
 	}
 

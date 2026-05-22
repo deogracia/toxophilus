@@ -191,6 +191,29 @@ func GetEditRiserPage(c *gin.Context) {
 	})
 }
 
+// ReactivateRiser annule le soft-delete d'une poignée
+func ReactivateRiser(c *gin.Context) {
+	id := c.Param("id")
+	// On remet le champ deleted_at à NULL pour restaurer l'objet
+	if err := database.DB.Unscoped().Model(&models.Riser{}).Where("id = ?", id).Update("deleted_at", nil).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Erreur lors de la restauration")
+		return
+	}
+	// On renvoie un statut 200 (OK) vide. HTMX va remplacer la ligne du tableau (tr) par ce vide (donc l'effacer).
+	c.Status(http.StatusOK)
+}
+
+// HardDeleteRiser supprime définitivement la poignée de la base
+func HardDeleteRiser(c *gin.Context) {
+	id := c.Param("id")
+	// Unscoped().Delete() effectue un vrai DELETE SQL
+	if err := database.DB.Unscoped().Delete(&models.Riser{}, id).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Erreur lors de la suppression définitive")
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
 // --- BRANCHES (LIMBS) ---
 
 func CreateLimb(c *gin.Context) {
@@ -335,5 +358,43 @@ func GetEditLimbPage(c *gin.Context) {
 		"titre": "Modifier les branches " + limb.NumeroSerie, // <-- Corrigé ici !
 		"type":  "limb",
 		"item":  limb,
+	})
+}
+
+// ReactivateLimb annule le soft-delete de branches
+func ReactivateLimb(c *gin.Context) {
+	id := c.Param("id")
+	if err := database.DB.Unscoped().Model(&models.Limb{}).Where("id = ?", id).Update("deleted_at", nil).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Erreur lors de la restauration")
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+// HardDeleteLimb supprime définitivement les branches de la base
+func HardDeleteLimb(c *gin.Context) {
+	id := c.Param("id")
+	if err := database.DB.Unscoped().Delete(&models.Limb{}, id).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Erreur lors de la suppression définitive")
+		return
+	}
+	c.Status(http.StatusOK)
+}
+
+// GetEquipementArchivesPage affiche la page des archives du matériel
+func GetEquipementArchivesPage(c *gin.Context) {
+	var risers []models.Riser
+	var limbs []models.Limb
+
+	// Unscoped() permet de voir les lignes supprimées.
+	// On filtre avec "deleted_at IS NOT NULL" pour ne prendre QUE la corbeille.
+	database.DB.Unscoped().Where("deleted_at IS NOT NULL").Find(&risers)
+	database.DB.Unscoped().Where("deleted_at IS NOT NULL").Find(&limbs)
+
+	c.HTML(http.StatusOK, "equipement_archives.html", gin.H{
+		"titre":  "Archives du Matériel - Club Toxophilus",
+		"active": "equipement",
+		"Risers": risers,
+		"Limbs":  limbs,
 	})
 }
