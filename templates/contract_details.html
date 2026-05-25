@@ -1,0 +1,60 @@
+{{ template "head" . }}
+<body>
+    <main class="container">
+        {{ template "nav" . }}
+
+        <div class="grid">
+            <div>
+                <h2>📄 Contrat de location #{{ .Contract.ID }}</h2>
+                <p>État : <strong>{{ .Contract.EtatPaiement }}</strong></p>
+            </div>
+            <div style="text-align: right;">
+                <a href="/contracts" class="secondary" role="button">Retour aux contrats</a>
+                <button class="contrast" disabled>🖨️ Générer le PDF (Bientôt)</button>
+            </div>
+        </div>
+
+        <div class="grid">
+            <article>
+                <header><strong>👤 Archer (Locataire)</strong></header>
+                <p><strong>Nom :</strong> {{ .Contract.Member.Nom }} {{ .Contract.Member.Prenom }}</p>
+                <p><strong>N° Licence :</strong> {{ .Contract.Member.CodeAdherent }}</p>
+                <p><strong>Email :</strong> <a href="mailto:{{ .Contract.Member.Email }}">{{ .Contract.Member.Email }}</a></p>
+            </article>
+
+            <article>
+                <header><strong>📅 Période & Règlement</strong></header>
+                <p><strong>Du :</strong> {{ .Contract.DateDebut.Format "02/01/2006" }} <br>
+                   <strong>Au :</strong> {{ .Contract.DateFin.Format "02/01/2006" }}</p>
+                <p><strong>Montant Location :</strong> {{ .Contract.MontantLocation }} €</p>
+                <p><strong>Montant Caution :</strong> {{ .Contract.MontantCaution }} €</p>
+            </article>
+        </div>
+
+        <article>
+            <header><strong>🏹 Matériel loué</strong></header>
+
+            {{ if .Contract.Riser.NumeroSerie }}
+                <p><strong>Poignée :</strong> {{ .Contract.Riser.Marque }} {{ .Contract.Riser.Modele }} (N° {{ .Contract.Riser.NumeroSerie }})</p>
+            {{ end }}
+
+            {{ if .Contract.Limb.NumeroSerie }}
+                <p><strong>Branches :</strong> {{ .Contract.Limb.Marque }} {{ .Contract.Limb.Modele }} - {{ .Contract.Limb.Taille }} / {{ .Contract.Limb.Puissance }} (N° {{ .Contract.Limb.NumeroSerie }})</p>
+            {{ end }}
+
+            {{ if and (not .Contract.Riser.NumeroSerie) (not .Contract.Limb.NumeroSerie) }}
+                <p><small style="color: var(--pico-muted-color);">Aucun arc spécifique. Accessoires uniquement.</small></p>
+            {{ end }}
+
+            {{ if .Contract.Accessoires }}
+                <p><strong>Accessoires :</strong> {{ .Contract.Accessoires }}</p>
+            {{ end }}
+
+            {{ if .Contract.Commentaire }}
+                <p><strong>Commentaires :</strong> {{ .Contract.Commentaire }}</p>
+            {{ end }}
+        </article>
+
+    </main>
+</body>
+</html>

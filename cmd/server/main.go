@@ -69,6 +69,11 @@ func setupRouter(env string) *gin.Engine {
 		web.GET("/equipement/edit/limb/:id", handlers.GetEditLimbPage)
 		web.GET("/equipement/archives", handlers.GetEquipementArchivesPage)
 
+		// les routes pour les contrats
+		web.GET("/contracts", handlers.GetContractsPage)
+		web.GET("/contracts/new", handlers.GetNewContractPage)
+		web.GET("/contracts/:id", handlers.GetContractDetailsPage)
+
 	}
 
 	// 2. Routes de Configuration Initiale
@@ -121,6 +126,9 @@ func setupRouter(env string) *gin.Engine {
 		api.DELETE("/limbs/:id", handlers.DeleteLimb)
 		api.DELETE("/limbs/:id/hard", handlers.HardDeleteLimb)
 		api.PUT("/limbs/:id/reactivate", handlers.ReactivateLimb)
+
+		// Contrats
+		api.POST("/contracts", handlers.CreateContract)
 
 	}
 
