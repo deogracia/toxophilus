@@ -75,6 +75,10 @@ func setupRouter(env string) *gin.Engine {
 		web.GET("/contracts/:id", handlers.GetContractDetailsPage)
 		web.GET("/contracts/:id/pdf", handlers.DownloadContractPDF)
 
+		// les routes pour les settings
+		web.GET("/settings", handlers.GetSettingsPage)
+		web.POST("/settings/save", handlers.ProcessSettingsSave)
+
 	}
 
 	// 2. Routes de Configuration Initiale

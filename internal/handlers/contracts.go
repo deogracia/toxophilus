@@ -200,28 +200,12 @@ func DownloadContractPDF(c *gin.Context) {
 
 	// 2. Récupération des réglages dynamiques pour l'Open Source
 	var settingsList []models.Setting
-	database.DB.Where("cle LIKE ?", "pdf_%").Find(&settingsList)
+	database.DB.Find(&settingsList)
 
 	settingsMap := make(map[string]string)
 	for _, s := range settingsList {
 		settingsMap[s.Cle] = s.Valeur
-	}
-
-	// Valeurs par défaut GÉNÉRIQUES
-	if settingsMap["pdf_club_name"] == "" {
-		settingsMap["pdf_club_name"] = "NOM DU CLUB"
-	}
-	if settingsMap["pdf_club_subtitle"] == "" {
-		settingsMap["pdf_club_subtitle"] = "Sous-titre ou Affiliation (à configurer)"
-	}
-	if settingsMap["pdf_footer_ligne1"] == "" {
-		settingsMap["pdf_footer_ligne1"] = "Association N° ... - Affilié FFTA N° ... - SIRET ..."
-	}
-	if settingsMap["pdf_footer_ligne2"] == "" {
-		settingsMap["pdf_footer_ligne2"] = "Siège social : Adresse du club - www.site-du-club.com"
-	}
-	if settingsMap["pdf_clauses_location"] == "" {
-		settingsMap["pdf_clauses_location"] = "Le locataire s'engage à prendre soin du matériel confié et à le restituer dans l'état où il lui a été remis. En cas de casse ou de perte, la caution pourra être encaissée."
+		log.Println("contracts.go - boucle de transformation. Clé -> " + s.Cle + " Valeur -> " + s.Valeur)
 	}
 
 	// 3. Appel du service de génération avec les settings

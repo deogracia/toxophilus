@@ -2,6 +2,7 @@
 port = 8080
 env = "development"
 secret_key = "cle_super_secrete_pour_les_sessions"
+upload_dir = "data/uploads"
 
 [database]
 driver = "sqlite"
