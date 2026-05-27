@@ -8,6 +8,7 @@ import (
 
 	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/models"
+	"github.com/deogracia/toxophilus/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -180,4 +181,56 @@ func GetContractDetailsPage(c *gin.Context) {
 		"active":   "contracts",
 		"Contract": contract,
 	})
+}
+
+// DownloadContractPDF génère et envoie le PDF au navigateur
+func DownloadContractPDF(c *gin.Context) {
+	id := c.Param("id")
+	var contract models.Contract
+
+	// 1. Récupération du contrat
+	if err := database.DB.Preload("Member").Preload("Riser").Preload("Limb").First(&contract, id).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.String(http.StatusNotFound, "Erreur 404 : Le contrat n'existe pas.")
+			return
+		}
+		c.String(http.StatusInternalServerError, "Erreur serveur : %v", err)
+		return
+	}
+
+	// 2. Récupération des réglages dynamiques pour l'Open Source
+	var settingsList []models.Setting
+	database.DB.Where("cle LIKE ?", "pdf_%").Find(&settingsList)
+
+	settingsMap := make(map[string]string)
+	for _, s := range settingsList {
+		settingsMap[s.Cle] = s.Valeur
+	}
+
+	// Valeurs par défaut GÉNÉRIQUES
+	if settingsMap["pdf_club_name"] == "" {
+		settingsMap["pdf_club_name"] = "NOM DU CLUB"
+	}
+	if settingsMap["pdf_club_subtitle"] == "" {
+		settingsMap["pdf_club_subtitle"] = "Sous-titre ou Affiliation (à configurer)"
+	}
+	if settingsMap["pdf_footer_ligne1"] == "" {
+		settingsMap["pdf_footer_ligne1"] = "Association N° ... - Affilié FFTA N° ... - SIRET ..."
+	}
+	if settingsMap["pdf_footer_ligne2"] == "" {
+		settingsMap["pdf_footer_ligne2"] = "Siège social : Adresse du club - www.site-du-club.com"
+	}
+	if settingsMap["pdf_clauses_location"] == "" {
+		settingsMap["pdf_clauses_location"] = "Le locataire s'engage à prendre soin du matériel confié et à le restituer dans l'état où il lui a été remis. En cas de casse ou de perte, la caution pourra être encaissée."
+	}
+
+	// 3. Appel du service de génération avec les settings
+	filename, err := services.GenerateContractPDF(contract, settingsMap)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Erreur lors de la création du PDF : %v", err)
+		return
+	}
+
+	// 4. Téléchargement
+	c.FileAttachment(filename, filename)
 }

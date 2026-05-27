@@ -30,3 +30,4 @@ config.toml
 dist/*
 toxophilus.db
 static/favicon.ico
+*.pdf
