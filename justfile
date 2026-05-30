@@ -45,7 +45,7 @@ _ensure-dir target_dir:
 
 [group('On my workstation')]
 [group('Building')]
-build: (_ensure-dir "dist")
+build: (_ensure-dir "dist") generate-favicon
 	@echo "🔨 Compilation des exécutables..."
 	go build -o ./dist/{{nom_application}}-create-user{{extension}} ./cmd/create_user/main.go
 	go build -o ./dist/{{exe_name}} ./cmd/server/main.go
