@@ -3,13 +3,16 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"io"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
 	"github.com/deogracia/toxophilus/config"
 	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/internal/handlers"
+	"github.com/deogracia/toxophilus/internal/logger"
 	"github.com/deogracia/toxophilus/internal/middleware"
 	"github.com/deogracia/toxophilus/services"
 	"github.com/deogracia/toxophilus/static"
@@ -20,8 +23,22 @@ import (
 )
 
 // setupRouter configure Gin en fonction de l'environnement
-func setupRouter(env string) *gin.Engine {
-	r := gin.Default()
+func setupRouter(env string, logFile *os.File) *gin.Engine {
+	// Initialisation d'un routeur VIERGE (sans le logger par défaut de Gin)
+	if env == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+	r := gin.New()
+
+	// On attache NOTRE logger, ainsi que le module Recovery (qui évite que le serveur crash en cas de panic)
+	r.Use(middleware.SlogLogger(), gin.Recovery())
+
+	// On redirige les petits messages internes de démarrage de Gin vers le même fichier
+	if logFile != nil {
+		gin.DefaultWriter = io.MultiWriter(os.Stdout, logFile)
+	} else {
+		gin.DefaultWriter = os.Stdout
+	}
 
 	if env == "development" {
 		fmt.Println("🚀 Mode DÉVELOPPEMENT (lecture sur disque)")
@@ -30,7 +47,6 @@ func setupRouter(env string) *gin.Engine {
 		r.StaticFile("/favicon.ico", "static/favicon.ico")
 	} else {
 		fmt.Println("📦 Mode PRODUCTION (lecture depuis l'exécutable)")
-		gin.SetMode(gin.ReleaseMode)
 		templ := template.Must(template.ParseFS(templates.TemplateFS, "*.html", "partials/*.html"))
 		r.SetHTMLTemplate(templ)
 		r.StaticFileFS("/favicon.ico", "favicon.ico", http.FS(static.StaticFS))
@@ -98,15 +114,6 @@ func setupRouter(env string) *gin.Engine {
 	api := r.Group("/api")
 	api.Use(middleware.AuthRequired())
 	{
-		// 	api.GET("/risers", handlers.ListRisers)
-
-		// on teste que ça se goupille bien.
-		api.GET("/me", func(ctx *gin.Context) {
-			userID, _ := ctx.Get("userID")
-			ctx.JSON(200, gin.H{"message": "Accès Autorisé", "ton_id_utilisateur": userID})
-
-		})
-
 		// Gestion des membres
 		api.GET("/members", handlers.ListMembers)
 		api.POST("/members", handlers.CreateMember)
@@ -142,12 +149,37 @@ func setupRouter(env string) *gin.Engine {
 }
 
 func main() {
-	config.LoadConfig()
+	errConfig := config.LoadConfig()
+
+	// 1. Initialisation du Logger (Mode Debug = true, Format = "texte" ou "json")
+	// En production, tu pourras lire ces valeurs depuis ton config.toml
+
+	logFilePath := viper.GetString("log.file")
+	logLevel := viper.GetString("log.level")
+	logFormat := viper.GetString("log.format")
+
+	logFile := logger.InitLogger(logFilePath, logLevel, logFormat)
+	defer logFile.Close()
+
+	// 2. Verbosité au démarrage avec slog
+	slog.Info("🏹 Démarrage de Toxophilus",
+		slog.String("version", "1.0.0"),
+		slog.String("environnement", viper.GetString("app.env")),
+	)
+
+	if errConfig != nil {
+		slog.Info("ℹ️ Configuration : utilisation des variables d'environnement et/ou valeurs par défaut",
+			slog.String("detail", errConfig.Error()),
+		)
+	} else {
+		slog.Info("✅ Configuration : fichier config.toml chargé avec succès")
+	}
 
 	if viper.GetString("app.secret_key") == "" {
 		log.Fatal("🛑 ERREUR FATALE : la clé de configuration 'app.secret_key' est manquante. Le serveur refuse de démarrer pour des raisons de sécurité.")
 	}
 
+	slog.Info("Connexion à la base de données "+viper.GetString("database.driver"), slog.String("DSN", viper.GetString("database.dsn")))
 	database.Connect()
 	services.InitDefaultSettings()
 
@@ -164,14 +196,14 @@ func main() {
 		env = "production"
 	}
 
-	r := setupRouter(env)
+	r := setupRouter(env, logFile)
 
 	port := viper.GetString("app.port")
 	if port == "" {
 		port = "8080"
 	}
 
-	log.Printf("🚀 Démarrage du serveur sur http://localhost:%s\n", port)
+	slog.Info("🚀 Serveur web prêt et en écoute", slog.String("port", port))
 	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("❌ Erreur lors du lancement du serveur: %v", err)
 	}

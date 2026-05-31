@@ -48,7 +48,7 @@ func TestEnvironments(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// 1. Initialisation du routeur dans l'environnement donné
-			r := setupRouter(tt.env)
+			r := setupRouter(tt.env, nil)
 
 			// 2. Test du Favicon
 			reqFavicon, _ := http.NewRequest("GET", "/favicon.ico", nil)
