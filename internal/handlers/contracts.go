@@ -218,3 +218,54 @@ func DownloadContractPDF(c *gin.Context) {
 	// 4. Téléchargement
 	c.FileAttachment(filename, filename)
 }
+
+// UpdateContractStatus modifie l'état d'un contrat via HTMX
+func UpdateContractStatus(c *gin.Context) {
+	id := c.Param("id")
+	var contract models.Contract
+
+	// 1. On récupère le contrat actuel
+	if err := database.DB.First(&contract, id).Error; err != nil {
+		c.String(http.StatusNotFound, "Contrat introuvable")
+		return
+	}
+
+	// 2. On garde l'ancien statut en mémoire
+	ancienStatut := contract.Statut
+
+	// 3. On récupère les nouvelles valeurs envoyées par HTMX
+	nouveauStatut := c.PostForm("statut")
+	nouvelEtatPaiement := c.PostForm("etat_paiement")
+
+	contract.Statut = nouveauStatut
+	contract.EtatPaiement = nouvelEtatPaiement
+
+	// 4. Sauvegarde des nouvelles infos du contrat
+	if err := database.DB.Save(&contract).Error; err != nil {
+		c.String(http.StatusInternalServerError, "Erreur lors de la sauvegarde")
+		return
+	}
+
+	// 5. LOGIQUE MÉTIER DU STOCK
+	if nouveauStatut == "Terminé" && ancienStatut != "Terminé" {
+		// Le matériel revient au club
+		if contract.RiserID != nil {
+			database.DB.Model(&models.Riser{}).Where("id = ?", contract.RiserID).Update("disponibilite", true)
+		}
+		if contract.LimbID != nil {
+			database.DB.Model(&models.Limb{}).Where("id = ?", contract.LimbID).Update("disponibilite", true)
+		}
+	} else if ancienStatut == "Terminé" && nouveauStatut != "Terminé" {
+		// Annulation de la restitution, on rebloque le matériel
+		if contract.RiserID != nil {
+			database.DB.Model(&models.Riser{}).Where("id = ?", contract.RiserID).Update("disponibilite", false)
+		}
+		if contract.LimbID != nil {
+			database.DB.Model(&models.Limb{}).Where("id = ?", contract.LimbID).Update("disponibilite", false)
+		}
+	}
+
+	// 6. Rafraîchissement automatique de la page
+	c.Header("HX-Refresh", "true")
+	c.Status(http.StatusOK)
+}

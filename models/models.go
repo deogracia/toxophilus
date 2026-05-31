@@ -66,6 +66,9 @@ type Contract struct {
 	MemberID uint   `json:"member_id"`
 	Member   Member `json:"member"`
 
+	// Le Statut global du contrat (NOUVEAU)
+	Statut string `gorm:"default:'Actif'" json:"statut"` // Ex: "Actif", "Expiré", "Terminé", "Annulé"
+
 	// Périodes
 	DateDebut time.Time `json:"date_debut"`
 	DateFin   time.Time `json:"date_fin"`

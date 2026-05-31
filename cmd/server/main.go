@@ -74,6 +74,7 @@ func setupRouter(env string) *gin.Engine {
 		web.GET("/contracts/new", handlers.GetNewContractPage)
 		web.GET("/contracts/:id", handlers.GetContractDetailsPage)
 		web.GET("/contracts/:id/pdf", handlers.DownloadContractPDF)
+		web.PUT("/contracts/:id/status", handlers.UpdateContractStatus)
 
 		// les routes pour les settings
 		web.GET("/settings", handlers.GetSettingsPage)
