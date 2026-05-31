@@ -3,31 +3,9 @@
     <main class="container">
         {{ template "nav" . }}
 
-<div class="grid">
+        <div class="grid"  style="align-items: center; margin-bottom: 1.5rem;">
             <div>
                 <h2 style="margin-bottom: 0;">📄 Contrat de location #{{ .Contract.ID }}</h2>
-
-                <form hx-put="/contracts/{{ .Contract.ID }}/status" hx-trigger="change" hx-swap="none" style="margin-top: 1rem;">
-                    <div class="grid">
-                        <label>
-                            <small>Statut du contrat</small>
-                            <select name="statut" style="margin-bottom: 0;">
-                                <option value="Actif" {{ if eq .Contract.Statut "Actif" }}selected{{ end }}>🟢 Actif</option>
-                                <option value="Expiré" {{ if eq .Contract.Statut "Expiré" }}selected{{ end }}>⚠️ Expiré (Non rendu)</option>
-                                <option value="Terminé" {{ if eq .Contract.Statut "Terminé" }}selected{{ end }}>📦 Terminé (Restitué)</option>
-                                <option value="Annulé" {{ if eq .Contract.Statut "Annulé" }}selected{{ end }}>❌ Annulé</option>
-                            </select>
-                        </label>
-
-                        <label>
-                            <small>État du paiement</small>
-                            <select name="etat_paiement" style="margin-bottom: 0;">
-                                <option value="En attente" {{ if eq .Contract.EtatPaiement "En attente" }}selected{{ end }}>⏳ En attente</option>
-                                <option value="Payé" {{ if eq .Contract.EtatPaiement "Payé" }}selected{{ end }}>✅ Payé</option>
-                            </select>
-                        </label>
-                    </div>
-                </form>
             </div>
 
             <div style="text-align: right;">
@@ -35,6 +13,48 @@
                 <a href="/contracts/{{ .Contract.ID }}/pdf" class="contrast" role="button">🖨️ Générer le PDF</a>
             </div>
         </div>
+
+        <article>
+            <form hx-put="/contracts/{{ .Contract.ID }}/status" hx-trigger="change" hx-swap="none" style="margin-top: 1rem;">
+                <div class="grid">
+                    <label>
+                        <small>Statut du contrat</small>
+                        <select name="statut" style="margin-bottom: 0;">
+                            <option value="Actif" {{ if eq .Contract.Statut "Actif" }}selected{{ end }}>🟢 Actif</option>
+                            <option value="Expiré" {{ if eq .Contract.Statut "Expiré" }}selected{{ end }}>⚠️ Expiré (Non rendu)</option>
+                            <option value="Terminé" {{ if eq .Contract.Statut "Terminé" }}selected{{ end }}>📦 Terminé (Restitué)</option>
+                            <option value="Annulé" {{ if eq .Contract.Statut "Annulé" }}selected{{ end }}>❌ Annulé</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <small>État du paiement</small>
+                        <select name="etat_paiement" style="margin-bottom: 0;">
+                            <option value="En attente" {{ if eq .Contract.EtatPaiement "En attente" }}selected{{ end }}>⏳ En attente</option>
+                            <option value="Payé" {{ if eq .Contract.EtatPaiement "Payé" }}selected{{ end }}>✅ Payé</option>
+                        </select>
+                    </label>
+                    <label>
+                        <small>Mode de paiement</small>
+                        <select name="mode_paiement" style="margin-bottom: 0;">
+                            <option value="" {{ if eq .Contract.ModePaiement "" }}selected{{ end }}>Non renseigné</option>
+                            <option value="Chèque" {{ if eq .Contract.ModePaiement "Chèque" }}selected{{ end }}>Chèque</option>
+                            <option value="Espèces" {{ if eq .Contract.ModePaiement "Espèces" }}selected{{ end }}>Espèces</option>
+                            <option value="Virement" {{ if eq .Contract.ModePaiement "Virement" }}selected{{ end }}>Virement</option>
+                            <option value="CB" {{ if eq .Contract.ModePaiement "CB" }}selected{{ end }}>Carte Bancaire</option>
+                            <option value="Autre" {{ if eq .Contract.ModePaiement "Autre" }}selected{{ end }}>Autre...</option>
+                        </select>
+                    </label>
+                    <label>
+                        <small>Document</small>
+                        <select name="recu_signe" style="margin-bottom: 0;">
+                            <option value="false" {{ if not .Contract.RecuSigne }}selected{{ end }}>📝 À signer</option>
+                            <option value="true" {{ if .Contract.RecuSigne }}selected{{ end }}>✅ Signé et reçu</option>
+                        </select>
+                    </label>
+                </div>
+            </form>
+        </article>
 
         <div class="grid">
             <article>

@@ -25,6 +25,7 @@
                             <th>Membre</th>
                             <th>Période</th>
                             <th>Matériel</th>
+                            <th>État</th>
                             <th>Paiement</th>
                             <th>Statut Document</th>
                             <th>Actions</th>
@@ -63,6 +64,14 @@
                                     {{ end }}
                                 </td>
                                 <td>
+                                    {{ if eq .Statut "Actif" }}🟢 Actif
+                                    {{ else if eq .Statut "Expiré" }}⚠️ Expiré
+                                    {{ else if eq .Statut "Terminé" }}📦 Terminé
+                                    {{ else if eq .Statut "Annulé" }}❌ Annulé
+                                    {{ else }}🟣 {{ .Statut }}
+                                    {{ end }}
+                                </td>
+                                <td>
                                     {{ if eq .EtatPaiement "Payé" }}
                                         <ins>Payé ({{ .ModePaiement }})</ins>
                                     {{ else }}
@@ -71,9 +80,9 @@
                                 </td>
                                 <td>
                                     {{ if .RecuSigne }}
-                                        ✅ Signé
+                                        <span data-tooltip="Contrat signé retourné par l'archer" >✅ Signé</span>
                                     {{ else }}
-                                        ⏳ Attente signature
+                                        <span data-tooltip="Contrat en attente de signature" >⏳ Attente signature</span>
                                     {{ end }}
                                 </td>
                                 <td>

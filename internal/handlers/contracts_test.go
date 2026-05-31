@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -153,5 +154,83 @@ func TestGetContractDetailsPage(t *testing.T) {
 	// Vérification supplémentaire : le message d'erreur est bien présent dans la réponse
 	if !strings.Contains(wNotFound.Body.String(), "Erreur: le contrat 99999 n'existe pas!") {
 		t.Errorf("❌ Le corps de la réponse ne contient pas le message d'erreur 404 attendu")
+	}
+}
+
+func TestUpdateContractStatus(t *testing.T) {
+	// 1. Préparation de la base de données de test
+	r := setupContractTestDB()
+
+	// Création d'une poignée et de branches factices considérées comme louées (non disponibles)
+	riser := models.Riser{Marque: "Hoyt Test", Disponibilite: false}
+	limb := models.Limb{Marque: "Uukha Test", Disponibilite: false}
+	database.DB.Create(&riser)
+	database.DB.Create(&limb)
+
+	// Création d'un contrat factice (Actif) lié à ce matériel
+	contract := models.Contract{
+		Statut:       "Actif",
+		EtatPaiement: "En attente",
+		RiserID:      &riser.ID,
+		LimbID:       &limb.ID,
+	}
+	database.DB.Create(&contract)
+
+	// 2. Ajout de la route à tester
+	r.PUT("/contracts/:id/status", UpdateContractStatus)
+
+	// 3. Préparation des données du formulaire (Simulation de HTMX)
+	formData := url.Values{}
+	formData.Set("statut", "Terminé")
+	formData.Set("etat_paiement", "Payé")
+	formData.Set("mode_paiement", "CB")
+	formData.Set("recu_signe", "true")
+
+	// 4. Exécution de la requête HTTP PUT
+	w := httptest.NewRecorder()
+	urlPath := "/contracts/" + strconv.Itoa(int(contract.ID)) + "/status"
+	req, _ := http.NewRequest(http.MethodPut, urlPath, strings.NewReader(formData.Encode()))
+	// Indispensable pour que Gin comprenne qu'il s'agit d'un formulaire (c.PostForm)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	r.ServeHTTP(w, req)
+
+	// ==========================================
+	// 5. VÉRIFICATIONS (Assertions)
+	// ==========================================
+
+	// A. Vérifier le code HTTP et le header spécifique à HTMX
+	if w.Code != http.StatusOK {
+		t.Errorf("❌ Code HTTP attendu 200, obtenu %d", w.Code)
+	}
+	if w.Header().Get("HX-Refresh") != "true" {
+		t.Errorf("❌ Header HTMX 'HX-Refresh' manquant")
+	}
+
+	// B. Vérifier que le contrat a bien été mis à jour en base
+	var updatedContract models.Contract
+	database.DB.First(&updatedContract, contract.ID)
+
+	if updatedContract.Statut != "Terminé" {
+		t.Errorf("❌ Statut attendu 'Terminé', obtenu '%s'", updatedContract.Statut)
+	}
+	if updatedContract.ModePaiement != "CB" {
+		t.Errorf("❌ Mode de paiement attendu 'CB', obtenu '%s'", updatedContract.ModePaiement)
+	}
+	if !updatedContract.RecuSigne {
+		t.Errorf("❌ RecuSigne attendu true, obtenu false")
+	}
+
+	// C. Vérifier la libération logique du matériel (Le plus important !)
+	var updatedRiser models.Riser
+	database.DB.First(&updatedRiser, riser.ID)
+	if !updatedRiser.Disponibilite {
+		t.Errorf("❌ La poignée devrait être redevenue disponible")
+	}
+
+	var updatedLimb models.Limb
+	database.DB.First(&updatedLimb, limb.ID)
+	if !updatedLimb.Disponibilite {
+		t.Errorf("❌ Les branches devraient être redevenues disponibles")
 	}
 }

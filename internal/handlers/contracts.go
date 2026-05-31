@@ -236,9 +236,17 @@ func UpdateContractStatus(c *gin.Context) {
 	// 3. On récupère les nouvelles valeurs envoyées par HTMX
 	nouveauStatut := c.PostForm("statut")
 	nouvelEtatPaiement := c.PostForm("etat_paiement")
+	nouveauModePaiement := c.PostForm("mode_paiement")
+	nouveauRecuSigne := c.PostForm("recu_signe")
 
 	contract.Statut = nouveauStatut
 	contract.EtatPaiement = nouvelEtatPaiement
+	contract.ModePaiement = nouveauModePaiement
+	if nouveauRecuSigne == "true" {
+		contract.RecuSigne = true
+	} else {
+		contract.RecuSigne = false
+	}
 
 	// 4. Sauvegarde des nouvelles infos du contrat
 	if err := database.DB.Save(&contract).Error; err != nil {
