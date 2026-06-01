@@ -1,0 +1,35 @@
+stages:
+  - test
+  - build
+
+variables:
+  CGO_ENABLED: "0"
+
+test:
+  stage: test
+  image: golang:1.22
+  script:
+    - go test ./...
+
+build_all:
+  stage: build
+  image: golang:1.22
+  parallel:
+    matrix:
+      - GOOS: [linux, windows, darwin]
+        GOARCH: [amd64, arm64]
+  script:
+    - mkdir -p dist
+    # Syntaxe Bash pour définir l'extension
+    - EXT=$([ "$GOOS" == "windows" ] && echo ".exe" || echo "")
+
+    # Compilation
+    - go build -ldflags="-s -w" -o dist/toxophilus-$GOOS-$GOARCH$EXT ./cmd/server/main.go
+    - go build -ldflags="-s -w" -o dist/toxophilus-create-user-$GOOS-$GOARCH$EXT ./cmd/create_user/main.go
+    - cp config-example.toml dist/
+
+  artifacts:
+    name: "toxophilus-$GOOS-$GOARCH"
+    paths:
+      - dist/
+    expire_in: 1 week

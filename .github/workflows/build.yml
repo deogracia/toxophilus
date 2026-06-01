@@ -1,0 +1,56 @@
+name: Build and Release Toxophilus
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: # Permet de lancer la compilation manuellement depuis l'interface GitHub
+
+jobs:
+  build:
+    name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Définition des cibles (Windows, macOS, Linux en x86_64 et ARM)
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration de Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.2'
+
+      - name: Lancement des tests unitaires
+        run: go test ./...
+
+      - name: Compilation
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0 # Crucial pour que SQLite compile de manière croisée sans dépendance C
+        run: |
+          mkdir -p dist
+
+          # Gestion de l'extension .exe pour Windows
+          EXT=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then EXT=".exe"; fi
+
+          # Optimisation des binaires avec -ldflags="-s -w" (réduit la taille du fichier)
+          go build -ldflags="-s -w" -o dist/toxophilus-${{ matrix.goos }}-${{ matrix.goarch }}$EXT ./cmd/server/main.go
+          go build -ldflags="-s -w" -o dist/toxophilus-create-user-${{ matrix.goos }}-${{ matrix.goarch }}$EXT ./cmd/create_user/main.go
+
+          # Ajout du fichier de configuration d'exemple
+          cp config-example.toml dist/
+
+      - name: Upload des artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: toxophilus-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
+          retention-days: 7
