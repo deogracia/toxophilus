@@ -29,7 +29,7 @@ jobs:
       - name: Génération des fichiers static
         run: |
           sudo apt-get update && sudo apt-get install -y imagemagick
-          magick -background none ".\images\sources" -define icon:auto-resize="16,32,48,128,256" ".\static\favicon.ico"
+          convert -background none ".\images\sources" -define icon:auto-resize="16,32,48,128,256" ".\static\favicon.ico"
 
       - name: Lancement des tests unitaires
         run: go test ./...
