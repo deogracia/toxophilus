@@ -30,7 +30,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y imagemagick tree
           tree .
-          convert -background none ".\images\sources" -define icon:auto-resize="16,32,48,128,256" ".\static\favicon.ico"
+          convert -background none ".\images\sources\Icone_inkscape.svg" -define icon:auto-resize="16,32,48,128,256" ".\static\favicon.ico"
 
       - name: Lancement des tests unitaires
         run: go test ./...
