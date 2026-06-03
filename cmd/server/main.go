@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -8,6 +10,10 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"strings"
+	"syscall"
+	"time"
 
 	"github.com/deogracia/toxophilus/config"
 	"github.com/deogracia/toxophilus/database"
@@ -203,8 +209,49 @@ func main() {
 		port = "8080"
 	}
 
-	slog.Info("🚀 Serveur web prêt et en écoute", slog.String("port", port))
-	if err := r.Run(":" + port); err != nil {
-		log.Fatalf("❌ Erreur lors du lancement du serveur: %v", err)
+	// On formate le port pour correspondre à `:PORT`
+	if !strings.HasPrefix(port, ":") {
+		port = ":" + port
 	}
+
+	// On configure le serveur HTTP natif de Go avec le routeur Gin
+	srv := &http.Server{
+		Addr:    port,
+		Handler: r,
+	}
+
+	// On lance le serveur dans une Goroutine (en arrière-plan) pour ne pas bloquer la suite du code
+	go func() {
+		slog.Info("🚀 Serveur en écoute", slog.String("port", port))
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatalf("🛑 Erreur critique du serveur : %v", err)
+		}
+	}()
+
+	// On crée un canal pour écouter les signaux d'arrêt du système d'exploitation
+	quit := make(chan os.Signal, 1)
+	// kill (sans paramètre) par défaut envoie syscal.SIGTERM
+	// kill -2 est syscall.SIGINT (ce que fait le CTRL+C)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	// Le code se met en pause ICI et attend qu'un signal soit reçu dans le canal
+	<-quit
+	slog.Info("🛑 Signal d'arrêt reçu. Fermeture gracieuse en cours...")
+
+	// On donne 5 secondes au serveur pour finir ce qu'il est en train de faire
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		slog.Error("❌ Le serveur a été forcé de s'arrêter", slog.Any("erreur", err))
+	}
+
+	// On ferme proprement la connexion à la base de données SQLite
+	sqlDB, err := database.DB.DB()
+	if err == nil {
+		sqlDB.Close()
+		slog.Info("💾 Connexion à la base de données fermée.")
+	}
+
+	slog.Info("👋 Toxophilus s'est arrêté proprement. À bientôt !")
 }
