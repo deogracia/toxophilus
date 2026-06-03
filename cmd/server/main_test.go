@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/deogracia/toxophilus/database"
@@ -12,6 +13,24 @@ import (
 	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
+
+// Cherche la racine du projet de manière dynamique
+func goToProjectRoot() {
+	dir, _ := os.Getwd()
+	for {
+		// Si on trouve le fichier go.mod, c'est qu'on est à la racine !
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			os.Chdir(dir)
+			return
+		}
+		// Sinon, on remonte d'un niveau parent
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break // On est arrivé à la racine du système de fichiers (sécurité)
+		}
+		dir = parent
+	}
+}
 
 // setupMockDB crée une base SQLite en mémoire pour éviter que les routes ne paniquent
 func setupMockDB() {
@@ -28,10 +47,8 @@ func setupMockDB() {
 }
 
 func TestEnvironments(t *testing.T) {
-	// ATTENTION ASTUCE :
-	// Quand on lance `go test ./cmd/server`, le dossier de travail courant devient `cmd/server`.
-	// Pour que `os.DirFS("templates")` fonctionne en mode dev, on doit remonter à la racine du projet.
-	os.Chdir("../..")
+	// On remplace os.Chdir("../..") par notre chercheur de dossier racine.
+	goToProjectRoot()
 
 	setupMockDB()
 	gin.SetMode(gin.TestMode)
