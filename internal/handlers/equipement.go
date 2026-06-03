@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/deogracia/toxophilus/config"
 	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/models"
 	"github.com/gin-gonic/gin"
@@ -185,9 +186,10 @@ func GetEditRiserPage(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "equipement_edit.html", gin.H{
-		"titre": "Modifier la poignée " + riser.NumeroSerie,
-		"type":  "riser",
-		"item":  riser,
+		"titre":   "Modifier la poignée " + riser.NumeroSerie,
+		"type":    "riser",
+		"item":    riser,
+		"Version": config.AppVersion,
 	})
 }
 
@@ -342,6 +344,7 @@ func GetEquipementPage(c *gin.Context) {
 		"active":   "equipement", // Allume l'onglet "Matériel" dans la navigation
 		"poignees": risers,
 		"branches": limbs,
+		"Version":  config.AppVersion,
 	})
 }
 
@@ -355,9 +358,10 @@ func GetEditLimbPage(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "equipement_edit.html", gin.H{
-		"titre": "Modifier les branches " + limb.NumeroSerie, // <-- Corrigé ici !
-		"type":  "limb",
-		"item":  limb,
+		"titre":   "Modifier les branches " + limb.NumeroSerie, // <-- Corrigé ici !
+		"type":    "limb",
+		"item":    limb,
+		"Version": config.AppVersion,
 	})
 }
 
@@ -392,9 +396,10 @@ func GetEquipementArchivesPage(c *gin.Context) {
 	database.DB.Unscoped().Where("deleted_at IS NOT NULL").Find(&limbs)
 
 	c.HTML(http.StatusOK, "equipement_archives.html", gin.H{
-		"titre":  "Archives du Matériel - Club Toxophilus",
-		"active": "equipement",
-		"Risers": risers,
-		"Limbs":  limbs,
+		"titre":   "Archives du Matériel - Club Toxophilus",
+		"active":  "equipement",
+		"Risers":  risers,
+		"Limbs":   limbs,
+		"Version": config.AppVersion,
 	})
 }

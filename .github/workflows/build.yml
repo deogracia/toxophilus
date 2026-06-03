@@ -47,9 +47,23 @@ jobs:
           EXT=""
           if [ "${{ matrix.goos }}" = "windows" ]; then EXT=".exe"; fi
 
+          # 🟢 LOGIQUE DE VERSIONNEMENT
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            # Si c'est un Tag Git (ex: v1.0.0), on utilise le nom du tag
+            APP_VERSION="${{ github.ref_name }}"
+          else
+            # Sinon, on utilise la date + le numéro du job GitHub (ex: 20260603-build42)
+            APP_VERSION="$(date +'%Y%m%d')-build${{ github.run_number }}"
+          fi
+          echo "Compilation de la version: $APP_VERSION"
+
+          # 🟢 INJECTION DANS LDFLAGS
+          # On ajoute l'injection de la variable main.AppVersion
+          LDFLAGS="-s -w -X 'config.AppVersion=$APP_VERSION'"
+
           # Optimisation des binaires avec -ldflags="-s -w" (réduit la taille du fichier)
-          go build -ldflags="-s -w" -o dist/toxophilus-${{ matrix.goos }}-${{ matrix.goarch }}$EXT ./cmd/server/main.go
-          go build -ldflags="-s -w" -o dist/toxophilus-create-user-${{ matrix.goos }}-${{ matrix.goarch }}$EXT ./cmd/create_user/main.go
+          go build -ldflags="$LDFLAGS" -o dist/toxophilus-${{ matrix.goos }}-${{ matrix.goarch }}$EXT ./cmd/server/main.go
+          go build -ldflags="$LDFLAGS" -o dist/toxophilus-create-user-${{ matrix.goos }}-${{ matrix.goarch }}$EXT ./cmd/create_user/main.go
 
           # Ajout du fichier de configuration d'exemple
           cp config-example.toml dist/

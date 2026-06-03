@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/deogracia/toxophilus/config"
 	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/models"
 	"github.com/gin-gonic/gin"
@@ -194,6 +195,7 @@ func GetMembersPage(c *gin.Context) {
 		"titre":   "Gestion des Membres - Toxophilus",
 		"membres": members,
 		"active":  "membres",
+		"Version": config.AppVersion,
 	})
 }
 
@@ -208,9 +210,10 @@ func GetMemberEditPage(c *gin.Context) {
 	}
 
 	c.HTML(http.StatusOK, "member_edit.html", gin.H{
-		"titre":  "Modifier - Toxophilus",
-		"active": "membres",
-		"member": member,
+		"titre":   "Modifier - Toxophilus",
+		"active":  "membres",
+		"member":  member,
+		"Version": config.AppVersion,
 	})
 }
 
@@ -223,5 +226,6 @@ func GetMemberArchivesPage(c *gin.Context) {
 		"titre":   "Archives - Les membres supprimés - Toxophilus",
 		"active":  "membres",
 		"membres": archivedMembers,
+		"Version": config.AppVersion,
 	})
 }

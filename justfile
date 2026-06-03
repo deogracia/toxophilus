@@ -28,11 +28,6 @@ coverage:
 	go tool cover -html coverage.out
 	@rm coverage.out # Nettoie le fichier temporaire
 
-# --- BONUS POUR PLUS TARD ---
-
-# Compile l'application
-# On fixe l'extension pour windows
-
 extension := if os_family() == "windows" {".exe"} else {""}
 exe_name := nom_application + extension
 

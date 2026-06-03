@@ -1,7 +1,12 @@
 {{ define "nav" }}
 <nav>
     <ul>
-        <li><a href="/" class="contrast"><strong>🎯 Club Toxophilus</strong></a></li>
+        <li>
+            <hgroup style="margin-bottom: 0;">
+                <a href="/" class="contrast" style="text-decoration: none;"><strong>🎯 Club Toxophilus</strong></a>
+                <p style="color: var(--pico-muted-color); font-size: 0.7rem; margin-bottom: 0;">Version : {{ .Version }}</p>
+            </hgroup>
+        </li>
     </ul>
     <ul>
         <li><a href="/members"

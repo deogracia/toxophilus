@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/deogracia/toxophilus/config"
 	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/models"
 	"github.com/deogracia/toxophilus/services"
@@ -42,6 +43,7 @@ func GetContractsPage(c *gin.Context) {
 		"titre":     "Contrats de Location - Club Toxophilus",
 		"active":    "contracts", // Permet d'allumer le bon onglet dans la nav
 		"Contracts": contracts,
+		"Version":   config.AppVersion,
 	})
 }
 
@@ -64,6 +66,7 @@ func GetNewContractPage(c *gin.Context) {
 		"Members": members,
 		"Risers":  risers,
 		"Limbs":   limbs,
+		"Version": config.AppVersion,
 	})
 }
 
@@ -180,6 +183,7 @@ func GetContractDetailsPage(c *gin.Context) {
 		"titre":    "Détails du contrat #" + id,
 		"active":   "contracts",
 		"Contract": contract,
+		"Version":  config.AppVersion,
 	})
 }
 

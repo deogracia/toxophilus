@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/deogracia/toxophilus/config"
 	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/models"
 	"github.com/gin-gonic/gin"
@@ -25,6 +26,7 @@ func GetSettingsPage(c *gin.Context) {
 		"titre":    "Configuration du Club - Toxophilus",
 		"active":   "settings",
 		"Settings": settingsMap,
+		"Version":  config.AppVersion,
 	})
 }
 

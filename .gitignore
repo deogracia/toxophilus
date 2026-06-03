@@ -32,3 +32,4 @@ toxophilus.db
 static/favicon.ico
 *.pdf
 logs/*
+data/*
