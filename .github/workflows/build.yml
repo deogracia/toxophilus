@@ -3,6 +3,8 @@ name: Build and Release Toxophilus
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
     branches: [ "main" ]
   workflow_dispatch: # Permet de lancer la compilation manuellement depuis l'interface GitHub
@@ -94,6 +96,27 @@ jobs:
 
           # Ajout du fichier de configuration d'exemple
           cp config-example.toml dist/
+
+      - name: Création de l'archive (ZIP ou TAR.GZ)
+        run: |
+          # On entre dans le dossier pour que les fichiers soient à la racine de l'archive
+          cd dist
+
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            zip -r ../toxophilus-${{ matrix.goos }}-${{ matrix.goarch }}.zip *
+          else
+            tar -czvf ../toxophilus-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz *
+          fi
+          cd ..
+
+      - name: Création de la Release GitHub
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            toxophilus-${{ matrix.goos }}-${{ matrix.goarch }}.zip
+            toxophilus-${{ matrix.goos }}-${{ matrix.goarch }}.tar.gz
 
       - name: Upload des artefacts
         uses: actions/upload-artifact@v4
