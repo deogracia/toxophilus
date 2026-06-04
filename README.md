@@ -12,10 +12,12 @@ nécessite
     * go >= 1.26.2 pour la compilation
     * [Inkscape](https://inkscape.org/)
     * [ImageMagick](https://imagemagick.org)
+    * [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck)
+    * [gosec](github.com/securego/gosec)
 
 Lancer sans générer un executable
 
 * sur win11/powershell
 ```powershell
-just test; $env:TOXO_APP_SECRET_KEY="super, secretkey#"; just run
+just run-dev
 ```

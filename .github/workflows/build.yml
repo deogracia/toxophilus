@@ -7,9 +7,36 @@ on:
     branches: [ "main" ]
   workflow_dispatch: # Permet de lancer la compilation manuellement depuis l'interface GitHub
 
+env:
+  GO_VERSION: '1.26.2'
+
 jobs:
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration de Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Scan Govulncheck (Dépendances)
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+      - name: Scan Gosec (Code source)
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          # On exclut le dossier dist si jamais il existe, pour ne pas scanner les binaires
+          gosec -exclude-dir=dist ./...
+
   build:
     name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
+    needs: audit
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -24,7 +51,7 @@ jobs:
       - name: Configuration de Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.26.2'
+          go-version: ${{ env.GO_VERSION }}
 
       - name: Génération des fichiers static
         run: |

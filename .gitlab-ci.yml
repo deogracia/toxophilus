@@ -1,19 +1,35 @@
 stages:
   - test
+  - audit
   - build
 
 variables:
   CGO_ENABLED: "0"
+  GOLANG_VERSION: "1.26.2"
 
 test:
   stage: test
-  image: golang:1.22
+  image: golang:$GOLANG_VERSION
   script:
     - go test ./...
 
+govulncheck:
+  stage: audit
+  image: golang:$GOLANG_VERSION
+  script:
+    - go install golang.org/x/vuln/cmd/govulncheck@latest
+    - govulncheck ./...
+
+gosec:
+  stage: audit
+  image: golang:$GOLANG_VERSION
+  script:
+    - go install github.com/securego/gosec/v2/cmd/gosec@latest
+    - gosec ./...
+
 build_all:
   stage: build
-  image: golang:1.22
+  image: golang:$GOLANG_VERSION
   parallel:
     matrix:
       - GOOS: [linux, windows, darwin]

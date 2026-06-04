@@ -70,3 +70,15 @@ generate-favicon:
 etat-projet:
 	tree /F /A > arborescence.txt
 	@powershell -NoProfile -ExecutionPolicy Bypass -File "./build-tools/all-files-in-one.ps1"
+
+# Lance un audit complet de sécurité et de qualité
+[group('Security & Quality')]
+[group('On my workstation')]
+audit:
+	@echo "🔍 1. Vérification des dépendances avec govulncheck..."
+	govulncheck ./...
+	@echo "\n🛡️ 2. Scan de sécurité du code avec gosec..."
+	gosec -exclude-dir=dist ./...
+	@echo "\n🧹 3. Vérification des bonnes pratiques avec golangci-lint..."
+	@echo "\n Todo..."
+	# golangci-lint run
