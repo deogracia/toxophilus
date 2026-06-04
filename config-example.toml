@@ -1,0 +1,17 @@
+[app]
+port = 8080
+env = "production"
+secret_key = "cle_super_secrete_pour_les_sessions"
+upload_dir = "data/uploads"
+
+[database]
+driver = "sqlite"
+dsn = "club_archerie.db"
+
+[log]
+# Niveau de verbosité : "debug", "info", "warn" ou "error"
+level = "info"
+# Emplacement du fichier de log relatif au dossiers "logs"
+file = "toxophilus.log"
+# Format de sortie : "texte" ou "json"
+format = "texte"

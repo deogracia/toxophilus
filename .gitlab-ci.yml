@@ -1,0 +1,68 @@
+stages:
+  - test
+  - audit
+  - build
+
+variables:
+  CGO_ENABLED: "0"
+  GOLANG_VERSION: "1.26"
+
+test:
+  stage: test
+  image: golang:$GOLANG_VERSION
+  script:
+    - go test ./...
+
+govulncheck:
+  stage: audit
+  image: golang:$GOLANG_VERSION
+  script:
+    - go install golang.org/x/vuln/cmd/govulncheck@latest
+    - govulncheck ./...
+
+gosec:
+  stage: audit
+  image: golang:$GOLANG_VERSION
+  script:
+    - go install github.com/securego/gosec/v2/cmd/gosec@latest
+    - gosec ./...
+
+build_all:
+  stage: build
+  image: golang:$GOLANG_VERSION
+  parallel:
+    matrix:
+      - GOOS: [linux, windows, darwin]
+        GOARCH: [amd64, arm64]
+  script:
+    - sudo apt-get update && sudo apt-get install -y imagemagick tree
+    - tree .
+    - magick -background none ".\images\sources" -define icon:auto-resize="16,32,48,128,256" ".\static\favicon.ico"
+    - mkdir -p dist
+    # Syntaxe Bash pour définir l'extension
+    - EXT=$([ "$GOOS" == "windows" ] && echo ".exe" || echo "")
+
+    # 🟢 LOGIQUE DE VERSIONNEMENT
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        # Si un tag est présent
+        APP_VERSION="$CI_COMMIT_TAG"
+      else
+        # Sinon, date + pipeline ID
+        APP_VERSION="$(date +'%Y%m%d')-build$CI_PIPELINE_IID"
+      fi
+    - echo "Compilation de la version $APP_VERSION"
+
+    # 🟢 INJECTION DANS LDFLAGS
+    - LDFLAGS="-s -w -X 'config.AppVersion=$APP_VERSION'"
+
+    # Compilation
+    - go build -ldflags="$LDFLAGS" -o dist/toxophilus-$GOOS-$GOARCH$EXT ./cmd/server/main.go
+    - go build -ldflags="$LDFLAGS" -o dist/toxophilus-create-user-$GOOS-$GOARCH$EXT ./cmd/create_user/main.go
+    - cp config-example.toml dist/
+
+  artifacts:
+    name: "toxophilus-$GOOS-$GOARCH"
+    paths:
+      - dist/
+    expire_in: 1 week

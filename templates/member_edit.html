@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+{{ template "head" . }}
+<body>
+    <main class="container">
+        {{ template "nav" . }}
+
+        <section>
+            <p><a href="/members" class="secondary">← Retour à la liste des membres</a></p>
+            <p><a href="/api/members/{{ .member.ID }}/export" class="secondary" download>📥 Télécharger les informations (RGPD)</a></p>
+            <h2>Modifier les informations de {{ .member.Prenom }} {{ .member.Nom }}</h2>
+            
+            <article>
+                <form hx-put="/api/members/{{ .member.ID }}" 
+                      hx-ext="json-enc" 
+                      hx-swap="none"
+                      hx-on::after-request="if(event.detail.successful) window.location.href = '/members'">
+                    
+                    <div class="grid">
+                        <label>
+                            Code Adhérent
+                            <input type="text" name="code_adherent" value="{{ .member.CodeAdherent }}" required>
+                        </label>
+                        <label>
+                            Date de Naissance
+                            <input type="date" name="date_naissance" value="{{ .member.DateNaissance.Format "2006-01-02" }}" required>
+                        </label>
+                    </div>
+
+                    <div class="grid">
+                        <label>
+                            Nom
+                            <input type="text" name="nom" value="{{ .member.Nom }}" required>
+                        </label>
+                        <label>
+                            Prénom
+                            <input type="text" name="prenom" value="{{ .member.Prenom }}" required>
+                        </label>
+                    </div>
+
+                    <div class="grid">
+                        <label>
+                            Email
+                            <input type="email" name="email" value="{{ .member.Email }}">
+                        </label>
+                        <label>
+                            Téléphone
+                            <input type="tel" name="telephone" value="{{ .member.Telephone }}">
+                        </label>
+                    </div>
+
+                    <div id="form-error" style="color: var(--pico-del-color); margin-bottom: 1rem; font-weight: bold;"></div>
+
+                    <div class="grid">
+                        <button type="submit">Enregistrer les modifications</button>
+                        <a href="/members" role="button" class="outline secondary">Annuler</a>
+                    </div>
+                </form>
+            </article>
+        </section>
+    </main>
+
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js"></script>
+    <script>
+        document.body.addEventListener('htmx:responseError', function(evt) {
+            try {
+                const response = JSON.parse(evt.detail.xhr.response);
+                if (response.error) {
+                    document.getElementById('form-error').innerText = "❌ " + response.error;
+                }
+            } catch (e) {
+                document.getElementById('form-error').innerText = "❌ Une erreur est survenue.";
+            }
+        });
+        document.body.addEventListener('htmx:beforeRequest', function() {
+            document.getElementById('form-error').innerText = "";
+        });
+    </script>
+</body>
+</html>

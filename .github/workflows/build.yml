@@ -1,0 +1,103 @@
+name: Build and Release Toxophilus
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: # Permet de lancer la compilation manuellement depuis l'interface GitHub
+
+env:
+  GO_VERSION: '1.26'
+
+jobs:
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration de Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Scan Govulncheck (Dépendances)
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+      - name: Scan Gosec (Code source)
+        run: |
+          go install github.com/securego/gosec/v2/cmd/gosec@latest
+          # On exclut le dossier dist si jamais il existe, pour ne pas scanner les binaires
+          gosec -exclude-dir=dist ./...
+
+  build:
+    name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
+    needs: audit
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Définition des cibles (Windows, macOS, Linux en x86_64 et ARM)
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration de Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Génération des fichiers static
+        run: |
+          sudo apt-get update && sudo apt-get install -y imagemagick tree
+          tree .
+          convert -background none "./images/sources/Icone_inkscape.svg" -define icon:auto-resize="16,32,48,128,256" "./static/favicon.ico"
+
+      - name: Lancement des tests unitaires
+        run: go test ./...
+
+      - name: Compilation
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0 # Crucial pour que SQLite compile de manière croisée sans dépendance C
+        run: |
+          mkdir -p dist
+
+          # Gestion de l'extension .exe pour Windows
+          EXT=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then EXT=".exe"; fi
+
+          # 🟢 LOGIQUE DE VERSIONNEMENT
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            # Si c'est un Tag Git (ex: v1.0.0), on utilise le nom du tag
+            APP_VERSION="${{ github.ref_name }}"
+          else
+            # Sinon, on utilise la date + le numéro du job GitHub (ex: 20260603-build42)
+            APP_VERSION="$(date +'%Y%m%d')-build${{ github.run_number }}"
+          fi
+          echo "Compilation de la version: $APP_VERSION"
+
+          # 🟢 INJECTION DANS LDFLAGS
+          # On ajoute l'injection de la variable main.AppVersion
+          LDFLAGS="-s -w -X 'config.AppVersion=$APP_VERSION'"
+
+          # Optimisation des binaires avec -ldflags="-s -w" (réduit la taille du fichier)
+          go build -ldflags="$LDFLAGS" -o dist/toxophilus-${{ matrix.goos }}-${{ matrix.goarch }}$EXT ./cmd/server/main.go
+          go build -ldflags="$LDFLAGS" -o dist/toxophilus-create-user-${{ matrix.goos }}-${{ matrix.goarch }}$EXT ./cmd/create_user/main.go
+
+          # Ajout du fichier de configuration d'exemple
+          cp config-example.toml dist/
+
+      - name: Upload des artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: toxophilus-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*
+          retention-days: 7

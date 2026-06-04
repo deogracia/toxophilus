@@ -23,3 +23,13 @@ go.work.sum
 
 # env file
 .env
+
+# my files
+club_archerie.db
+config.toml
+dist/*
+toxophilus.db
+static/favicon.ico
+*.pdf
+logs/*
+data/*

@@ -1,0 +1,32 @@
+{{ define "nav" }}
+<nav>
+    <ul>
+        <li>
+            <hgroup style="margin-bottom: 0;">
+                <a href="/" class="contrast" style="text-decoration: none;"><strong>🎯 Club Toxophilus</strong></a>
+                <p style="color: var(--pico-muted-color); font-size: 0.7rem; margin-bottom: 0;">Version : {{ .Version }}</p>
+            </hgroup>
+        </li>
+    </ul>
+    <ul>
+        <li><a href="/members"
+            {{ if eq .active "membres" }}class="outline"{{ else }}class="secondary"{{ end }}
+            >Membres</a></li>
+        <li><a href="/equipement"
+            {{ if eq .active "equipement" }}class="outline"{{ else }}class="secondary"{{ end }}
+            >Matériel</a></li>
+        <li><a href="/contracts"
+            {{ if eq .active "contracts" }}class="outline"{{ else }}class="secondary"{{ end }}
+            >Contrats</a></li>
+        <li><a href="/settings"
+            {{ if eq .active "settings" }}class="outline"{{ else }}class="secondary"{{ end }}
+            >⚙️ Configuration</a></li>
+        <li><a href="#"
+               role="button"
+               class="outline"
+               hx-post="/api/logout"
+               hx-swap="none">
+               Déconnexion</a></li>
+    </ul>
+</nav>
+{{ end }}
