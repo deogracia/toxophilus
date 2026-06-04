@@ -195,7 +195,8 @@ func main() {
 	case "", "development", "production":
 		log.Println("APP_ENV a une valeur autorisée!")
 	default:
-		log.Fatalf("🛑 ERREUR FATALE : Environement de démarage %s non pris en charge. L'application s'arrête.", env)
+		// #nosec G706 -- l'application s'arrête immédiatement.
+		log.Fatalf("🛑 ERREUR FATALE : Environement de démarage %q non pris en charge. L'application s'arrête.", env)
 	}
 
 	if env == "" {
