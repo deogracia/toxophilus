@@ -12,11 +12,14 @@ import (
 func InitLogger(filePath string, logLevel string, logFormat string) *os.File {
 	// 1. Création du dossier de logs s'il n'existe pas
 	logDir := "logs"
-	os.MkdirAll(logDir, 0755)
+	if err := os.MkdirAll(logDir, 0750); err != nil {
+		log.Printf("Erreur lors de la création du dossier de logs : %v", err)
+	}
 
 	// 2. Ouverture ou création du fichier de log
-	logFile := filepath.Join(logDir, filePath)
-	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	safePath := filepath.Clean(filePath)
+	logFile := filepath.Join(logDir, safePath)
+	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
 	if err != nil {
 		panic("Impossible de créer le fichier de log: " + err.Error())
 	}

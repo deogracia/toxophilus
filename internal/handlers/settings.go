@@ -60,7 +60,7 @@ func ProcessSettingsSave(c *gin.Context) {
 		// Un fichier a bien été soumis !
 		// Étape Open Source essentielle : on crée un dossier "data/uploads" à la racine de l'exécution
 		uploadDir := filepath.Join("data", "uploads")
-		_ = os.MkdirAll(uploadDir, os.ModePerm)
+		_ = os.MkdirAll(uploadDir, 0750)
 
 		// On forge le nom du fichier (on garde son extension d'origine .jpg ou .png)
 		ext := filepath.Ext(file.Filename)
