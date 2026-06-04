@@ -8,7 +8,7 @@ on:
   workflow_dispatch: # Permet de lancer la compilation manuellement depuis l'interface GitHub
 
 env:
-  GO_VERSION: '1.26.2'
+  GO_VERSION: '1.26'
 
 jobs:
   audit:

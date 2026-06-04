@@ -5,7 +5,7 @@ stages:
 
 variables:
   CGO_ENABLED: "0"
-  GOLANG_VERSION: "1.26.2"
+  GOLANG_VERSION: "1.26"
 
 test:
   stage: test
