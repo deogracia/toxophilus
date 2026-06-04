@@ -40,6 +40,8 @@ jobs:
     name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
     needs: audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     strategy:
       matrix:
         # Définition des cibles (Windows, macOS, Linux en x86_64 et ARM)
