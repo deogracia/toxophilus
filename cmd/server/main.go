@@ -250,7 +250,7 @@ func main() {
 	// On ferme proprement la connexion à la base de données SQLite
 	sqlDB, err := database.DB.DB()
 	if err == nil {
-		sqlDB.Close()
+		_ = sqlDB.Close() // On ignore l'erreur car le serveur est en train de s'éteindre
 		slog.Info("💾 Connexion à la base de données fermée.")
 	}
 

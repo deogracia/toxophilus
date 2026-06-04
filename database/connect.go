@@ -41,8 +41,10 @@ func Connect() {
 
 	log.Printf("✅ Connecté à la BDD (Moteur : %s)", driver)
 
-	DB.AutoMigrate(
+	if err := DB.AutoMigrate(
 		&models.User{}, &models.Member{}, &models.Limb{},
 		&models.Riser{}, &models.Contract{}, &models.Setting{},
-	)
+	); err != nil {
+		log.Fatalf("🛑 Échec critique de la migration de la base de données : %v", err)
+	}
 }

@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"log"
 
 	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/models"
@@ -37,7 +38,9 @@ func InitDefaultSettings() {
 	for cle, val := range defaults {
 		var existing models.Setting
 		if database.DB.Where("cle = ?", cle).First(&existing).Error != nil {
-			SetSetting(cle, val)
+			if err := SetSetting(cle, val); err != nil {
+				log.Fatalf("❌ Impossible de mettre la valeur par défaut %s: %s. \nErreur: %v", cle, val, err)
+			}
 		}
 	}
 }

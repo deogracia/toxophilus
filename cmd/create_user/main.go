@@ -17,7 +17,10 @@ func main() {
 		return
 	}
 
-	config.LoadConfig()
+	if err := config.LoadConfig(); err != nil {
+		log.Fatalf("❌ Impossible de charger la configuration.\n Erreur: %v", err)
+	}
+
 	database.Connect()
 
 	email := os.Args[1]
