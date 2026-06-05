@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -86,4 +87,69 @@ func TestEnvironments(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestHealthCheck(t *testing.T) {
+	// 1. On s'assure d'être au bon endroit pour lire les fichiers statiques
+	goToProjectRoot()
+
+	t.Run("Cas 1 : Serveur et Base de données sains (200 OK)", func(t *testing.T) {
+		// Initialise une base de données en mémoire (qui fonctionne parfaitement)
+		setupMockDB()
+
+		// Récupère le routeur configuré (avec notre fameuse route /health)
+		r := setupRouter("test", nil)
+
+		// Simule la requête
+		req, _ := http.NewRequest("GET", "/health", nil)
+		w := httptest.NewRecorder() // Cet objet va "capturer" la réponse
+
+		// Lance la requête dans Gin
+		r.ServeHTTP(w, req)
+
+		// --- VÉRIFICATIONS ---
+		if w.Code != http.StatusOK {
+			t.Errorf("Attendu 200 OK, obtenu %d", w.Code)
+		}
+
+		var response map[string]string
+		if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+			t.Fatalf("Erreur de lecture du JSON : %v", err)
+		}
+		if response["status"] != "healthy" {
+			t.Errorf("Attendu status='healthy', obtenu '%s'", response["status"])
+		}
+	})
+
+	t.Run("Cas 2 : Base de données plantée (500 Internal Server Error)", func(t *testing.T) {
+		// Initialise une base de données en mémoire
+		setupMockDB()
+
+		// ON PROVOQUE LA PANNE : On ferme explicitement la connexion SQL
+		sqlDB, _ := database.DB.DB()
+		sqlDB.Close()
+
+		// Récupère le routeur
+		r := setupRouter("test", nil)
+
+		// Simule la requête
+		req, _ := http.NewRequest("GET", "/health", nil)
+		w := httptest.NewRecorder()
+
+		// Lance la requête
+		r.ServeHTTP(w, req)
+
+		// --- VÉRIFICATIONS ---
+		if w.Code != http.StatusInternalServerError {
+			t.Errorf("Attendu 500 Internal Server Error, obtenu %d", w.Code)
+		}
+
+		var response map[string]string
+		if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+			t.Fatalf("Erreur de lecture du JSON : %v", err)
+		}
+		if response["status"] != "error" {
+			t.Errorf("Attendu status='error', obtenu '%s'", response["status"])
+		}
+	})
 }

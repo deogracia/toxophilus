@@ -115,6 +115,26 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 	// 3. Routes Publiques
 	r.POST("/api/login", handlers.LoginHandler)
 	r.POST("/api/logout", handlers.LogoutHandler)
+	// health check
+	r.GET("/health", func(c *gin.Context) {
+		// 1. On vérifie si la connexion à la base de données est toujours active
+		sqlDB, err := database.DB.DB()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Erreur DB"})
+			return
+		}
+
+		// 2. On tente un "Ping" réel vers SQLite
+		if err := sqlDB.Ping(); err != nil {
+			// Si la DB est bloquée, on renvoie une Erreur 500
+			// La commande 'curl -f' de l'hébergeur va planter et redémarrer l'application !
+			c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "DB inaccessible"})
+			return
+		}
+
+		// 3. Tout va bien, on renvoie un simple statut 200 OK
+		c.JSON(http.StatusOK, gin.H{"status": "healthy"})
+	})
 
 	// 4. Routes Protégées
 	api := r.Group("/api")
