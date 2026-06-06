@@ -189,7 +189,7 @@ func main() {
 
 	// 2. Verbosité au démarrage avec slog
 	slog.Info("🏹 Démarrage de Toxophilus",
-		slog.String("version", "1.0.0"),
+		slog.String("version", config.AppVersion),
 		slog.String("environnement", viper.GetString("app.env")),
 	)
 
