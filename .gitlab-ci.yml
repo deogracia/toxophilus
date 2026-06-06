@@ -55,7 +55,7 @@ build_all:
     - echo "Compilation de la version $APP_VERSION"
 
     # INJECTION DANS LDFLAGS
-    - LDFLAGS="-s -w -X 'config.AppVersion=$APP_VERSION'"
+    - LDFLAGS="-s -w -X 'github.com/deogracia/toxophilus/config.AppVersion=$APP_VERSION'"
 
     # Compilation
     - go build -ldflags="$LDFLAGS" -o dist/toxophilus-$GOOS-$GOARCH$EXT ./cmd/server/main.go
