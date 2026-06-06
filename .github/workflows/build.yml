@@ -90,7 +90,7 @@ jobs:
 
           # 🟢 INJECTION DANS LDFLAGS
           # On ajoute l'injection de la variable main.AppVersion
-          LDFLAGS="-s -w -X 'config.AppVersion=$APP_VERSION'"
+          LDFLAGS="-s -w -X 'github.com/deogracia/toxophilus/config.AppVersion=$APP_VERSION'"
 
           # Optimisation des binaires avec -ldflags="-s -w" (réduit la taille du fichier)
           go build -ldflags="$LDFLAGS" -o dist/toxophilus-${{ matrix.goos }}-${{ matrix.goarch }}$EXT ./cmd/server/main.go
