@@ -6,12 +6,15 @@ import (
 	"gorm.io/gorm"
 )
 
+// User représente un utilisateur ayant accès à l'interface web/API
+// pour y réaliser les différentes opérations inhérentes à la location
 type User struct {
 	gorm.Model
 	Email    string `gorm:"uniqueIndex"`
 	Password string
 }
 
+// Member représente une personne louant du matériel
 type Member struct {
 	gorm.Model
 	CodeAdherent  string `gorm:"uniqueIndex"`
@@ -27,6 +30,7 @@ type Member struct {
 	Contracts     []Contract
 }
 
+// Limb représente les branches d'un arc
 type Limb struct {
 	gorm.Model
 	NumeroSerie   string `gorm:"uniqueIndex"`
@@ -40,6 +44,7 @@ type Limb struct {
 	Prix          float64
 }
 
+// Riser représente la poignée d'un arc
 type Riser struct {
 	gorm.Model
 	NumeroSerie   string `gorm:"uniqueIndex"`
@@ -53,12 +58,14 @@ type Riser struct {
 	Prix          float64
 }
 
+// Setting représente un parametre de notre application
 type Setting struct {
 	gorm.Model
 	Cle    string `gorm:"uniqueIndex"`
 	Valeur string
 }
 
+// Contract représente un contrat liant Member, Limb et riser
 type Contract struct {
 	gorm.Model
 

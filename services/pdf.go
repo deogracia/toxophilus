@@ -11,7 +11,8 @@ import (
 	"github.com/johnfercher/maroto/pkg/props"
 )
 
-// GenerateContractPDF accepte le contrat ET les réglages dynamiques
+// GenerateContractPDF accepte en entrée le contrat ET les réglages dynamiques
+// et génère le contrat au format PDF
 func GenerateContractPDF(contract models.Contract, settings map[string]string) (string, error) {
 	m := pdf.NewMaroto(consts.Portrait, consts.A4)
 	m.SetPageMargins(15, 15, 15)

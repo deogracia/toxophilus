@@ -13,6 +13,8 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
+// GenerateToken génère à partir de l'identifiant de l'utilisateur
+// un token valable 24H
 func GenerateToken(userID uint) (string, error) {
 	secret := viper.GetString("app.secret_key")
 	if secret == "" {
@@ -32,6 +34,7 @@ func GenerateToken(userID uint) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
+// ValidateToken vérifie que le token fourni est valide
 func ValidateToken(tokenString string) (*Claims, error) {
 	secret := viper.GetString("app.secret_key")
 

@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+// GetSetting récupère la valeur du paramètre `cle`
+// S'il n'est pas défini, il retourne `defaultVal`
 func GetSetting(cle string, defaultVal string) string {
 	var setting models.Setting
 	if err := database.DB.Where("cle = ?", cle).First(&setting).Error; err != nil {
@@ -17,6 +19,7 @@ func GetSetting(cle string, defaultVal string) string {
 	return setting.Valeur
 }
 
+// SetSetting sauve en BDD le couple `cle`/`valeur`
 func SetSetting(cle string, valeur string) error {
 	var setting models.Setting
 	result := database.DB.Where("cle = ?", cle).First(&setting)
@@ -28,6 +31,7 @@ func SetSetting(cle string, valeur string) error {
 	return database.DB.Save(&setting).Error
 }
 
+// InitDefaultSettings charge en base quelques valeurs par défaut
 func InitDefaultSettings() {
 	defaults := map[string]string{
 		"montant_arc_nu":    "120.00",

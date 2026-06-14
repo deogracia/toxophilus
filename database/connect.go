@@ -15,6 +15,7 @@ import (
 
 var DB *gorm.DB
 
+// Connect réalise la connection à la base de données en utilisant le bon driver
 func Connect() {
 	var err error
 	var dialector gorm.Dialector
