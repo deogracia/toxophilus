@@ -137,8 +137,7 @@ func DeleteMember(c *gin.Context) {
 	// cela ne supprime pas vraiment la ligne, mais remplit le champ "deleted_at".
 	// C'est ce qu'on appelle un "Soft Delete". Très sécurisant pour ne pas casser l'historique !
 	database.DB.Delete(&member)
-
-	c.JSON(http.StatusOK, gin.H{"message": "Adhérent supprimé avec succès"})
+	respondWithDelete(c, "Adhérent supprimé avec succès")
 }
 
 // ReactivateMember restaure un membre supprimé (Soft Delete)
@@ -152,7 +151,7 @@ func ReactivateMember(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Membre réactivé avec succès"})
+	respondWithReactivate(c, "Membre réactivé avec succès")
 }
 
 // HardDeleteMember supprime définitivement un membre de la base de données
@@ -165,7 +164,7 @@ func HardDeleteMember(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Adhérent supprimé définitivement"})
+	respondWithDelete(c, "Adhérent supprimé définitivement")
 }
 
 func ExportMemberData(c *gin.Context) {
