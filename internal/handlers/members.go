@@ -2,13 +2,24 @@ package handlers
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/deogracia/toxophilus/config"
-	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/models"
 	"github.com/gin-gonic/gin"
 )
+
+// MemberHandler gère les requêtes HTTP pour les membres.
+// Il utilise l'injection de dépendances via l'interface MemberRepository.
+type MemberHandler struct {
+	repo models.MemberRepository
+}
+
+// NewMemberHandler crée une nouvelle instance de MemberHandler.
+func NewMemberHandler(repo models.MemberRepository) *MemberHandler {
+	return &MemberHandler{repo: repo}
+}
 
 // CreateMemberRequest définit ce qu'on attend du formulaire (Postman/Frontend)
 type CreateMemberRequest struct {
@@ -25,7 +36,7 @@ type CreateMemberRequest struct {
 }
 
 // CreateMember ajoute un nouvel adhérent dans la base
-func CreateMember(c *gin.Context) {
+func (h *MemberHandler) CreateMember(c *gin.Context) {
 	var req CreateMemberRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Données invalides", "details": err.Error()})
@@ -52,8 +63,8 @@ func CreateMember(c *gin.Context) {
 		CodePostal:    req.CodePostal,
 	}
 
-	// Insertion en base de données
-	if err := database.DB.Create(&member).Error; err != nil {
+	// Insertion en base de données via le repository
+	if err := h.repo.Create(&member); err != nil {
 		// L'erreur typique ici serait un doublon sur le CodeAdherent (qui est en uniqueIndex)
 		c.JSON(http.StatusConflict, gin.H{"error": "Impossible de créer le membre (Ce code adhérent existe peut-être déjà)"})
 		return
@@ -64,11 +75,9 @@ func CreateMember(c *gin.Context) {
 }
 
 // ListMembers renvoie tous les adhérents du club
-func ListMembers(c *gin.Context) {
-	var members []models.Member
-
-	// Find récupère tout par défaut
-	if err := database.DB.Find(&members).Error; err != nil {
+func (h *MemberHandler) ListMembers(c *gin.Context) {
+	members, err := h.repo.GetAll()
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la récupération des membres"})
 		return
 	}
@@ -77,19 +86,22 @@ func ListMembers(c *gin.Context) {
 }
 
 // UpdateMember met à jour les informations d'un adhérent existant
-func UpdateMember(c *gin.Context) {
-	// On récupère l'ID passé dans l'URL (ex: /api/members/1)
-	id := c.Param("id")
-	var member models.Member
+func (h *MemberHandler) UpdateMember(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		return
+	}
 
-	// 1. Vérifier si le membre existe
-	if err := database.DB.First(&member, id).Error; err != nil {
+	// 1. Vérifier si le membre existe via le repository
+	member, err := h.repo.GetByID(uint(id))
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Membre introuvable"})
 		return
 	}
 
 	// 2. Récupérer les nouvelles données
-	// On réutilise intelligemment la même structure que pour la création
 	var req CreateMemberRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Données invalides", "details": err.Error()})
@@ -114,8 +126,8 @@ func UpdateMember(c *gin.Context) {
 	member.Ville = req.Ville
 	member.CodePostal = req.CodePostal
 
-	// 4. Sauvegarder en base
-	if err := database.DB.Save(&member).Error; err != nil {
+	// 4. Sauvegarder via le repository
+	if err := h.repo.Update(member); err != nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "Impossible de modifier : ce Code Adhérent est peut être déjà utilisé par un autre archer."})
 		return
 	}
@@ -124,29 +136,39 @@ func UpdateMember(c *gin.Context) {
 }
 
 // DeleteMember supprime un adhérent
-func DeleteMember(c *gin.Context) {
-	id := c.Param("id")
-	var member models.Member
+func (h *MemberHandler) DeleteMember(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		return
+	}
 
-	if err := database.DB.First(&member, id).Error; err != nil {
+	member, err := h.repo.GetByID(uint(id))
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Membre introuvable"})
 		return
 	}
 
-	// Magie de GORM : Puisque notre modèle inclut gorm.Model,
-	// cela ne supprime pas vraiment la ligne, mais remplit le champ "deleted_at".
-	// C'est ce qu'on appelle un "Soft Delete". Très sécurisant pour ne pas casser l'historique !
-	database.DB.Delete(&member)
+	// Soft delete via le repository
+	if err := h.repo.Delete(member); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Impossible de supprimer ce membre."})
+		return
+	}
+
 	respondWithDelete(c, "Adhérent supprimé avec succès")
 }
 
 // ReactivateMember restaure un membre supprimé (Soft Delete)
-func ReactivateMember(c *gin.Context) {
-	id := c.Param("id")
+func (h *MemberHandler) ReactivateMember(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		return
+	}
 
-	// Unscoped() permet d'ignorer le filtre de suppression de GORM.
-	// On remet le champ deleted_at à NULL.
-	if err := database.DB.Unscoped().Model(&models.Member{}).Where("id = ?", id).Update("deleted_at", nil).Error; err != nil {
+	if err := h.repo.Reactivate(uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Impossible de réactiver ce membre."})
 		return
 	}
@@ -155,11 +177,15 @@ func ReactivateMember(c *gin.Context) {
 }
 
 // HardDeleteMember supprime définitivement un membre de la base de données
-func HardDeleteMember(c *gin.Context) {
-	id := c.Param("id")
+func (h *MemberHandler) HardDeleteMember(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		return
+	}
 
-	// L'utilisation de Unscoped().Delete() supprime la ligne physiquement
-	if err := database.DB.Unscoped().Delete(&models.Member{}, id).Error; err != nil {
+	if err := h.repo.HardDelete(uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la suppression définitive"})
 		return
 	}
@@ -167,12 +193,18 @@ func HardDeleteMember(c *gin.Context) {
 	respondWithDelete(c, "Adhérent supprimé définitivement")
 }
 
-func ExportMemberData(c *gin.Context) {
-	id := c.Param("id")
-	var member models.Member
+// ExportMemberData exporte les données d'un membre en JSON
+func (h *MemberHandler) ExportMemberData(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		return
+	}
 
-	// On récupère le membre (même s'il est en archives)
-	if err := database.DB.Unscoped().First(&member, id).Error; err != nil {
+	// On récupère le membre (même s'il est archivé)
+	member, err := h.repo.GetByIDWithUnscoped(uint(id))
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Membre introuvable"})
 		return
 	}
@@ -186,9 +218,12 @@ func ExportMemberData(c *gin.Context) {
 }
 
 // GetMembersPage affiche la liste des membres actifs
-func GetMembersPage(c *gin.Context) {
-	var members []models.Member
-	database.DB.Find(&members)
+func (h *MemberHandler) GetMembersPage(c *gin.Context) {
+	members, err := h.repo.GetAll()
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "index.html", gin.H{"error": "Erreur lors du chargement des membres"})
+		return
+	}
 
 	c.HTML(http.StatusOK, "members.html", gin.H{
 		"titre":   "Gestion des Membres - Toxophilus",
@@ -199,11 +234,16 @@ func GetMembersPage(c *gin.Context) {
 }
 
 // GetMemberEditPage affiche le formulaire de modification d'un membre
-func GetMemberEditPage(c *gin.Context) {
-	id := c.Param("id")
-	var member models.Member
+func (h *MemberHandler) GetMemberEditPage(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.Redirect(http.StatusTemporaryRedirect, "/members")
+		return
+	}
 
-	if err := database.DB.First(&member, id).Error; err != nil {
+	member, err := h.repo.GetByID(uint(id))
+	if err != nil {
 		c.Redirect(http.StatusTemporaryRedirect, "/members")
 		return
 	}
@@ -217,9 +257,12 @@ func GetMemberEditPage(c *gin.Context) {
 }
 
 // GetMemberArchivesPage affiche la liste des membres supprimés
-func GetMemberArchivesPage(c *gin.Context) {
-	var archivedMembers []models.Member
-	database.DB.Unscoped().Where("deleted_at IS NOT NULL").Find(&archivedMembers)
+func (h *MemberHandler) GetMemberArchivesPage(c *gin.Context) {
+	archivedMembers, err := h.repo.GetArchived()
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "index.html", gin.H{"error": "Erreur lors du chargement des archives"})
+		return
+	}
 
 	c.HTML(http.StatusOK, "member_archives.html", gin.H{
 		"titre":   "Archives - Les membres supprimés - Toxophilus",

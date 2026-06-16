@@ -30,6 +30,21 @@ type Member struct {
 	Contracts     []Contract
 }
 
+// MemberRepository définit l'interface de stockage pour les adhérents.
+// Tout moteur de stockage (GORM, SQL brut, mock en mémoire pour tests)
+// doit implémenter ces méthodes.
+type MemberRepository interface {
+	GetAll() ([]Member, error)
+	GetArchived() ([]Member, error)
+	GetByID(id uint) (*Member, error)
+	GetByIDWithUnscoped(id uint) (*Member, error)
+	Create(member *Member) error
+	Update(member *Member) error
+	Delete(member *Member) error
+	Reactivate(id uint) error
+	HardDelete(id uint) error
+}
+
 // Limb représente les branches d'un arc
 type Limb struct {
 	gorm.Model

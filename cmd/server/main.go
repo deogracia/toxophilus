@@ -36,6 +36,10 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 	}
 	r := gin.New()
 
+	// On initialise nos dépôts et handlers avec injection de dépendances
+	memberRepo := database.NewGormMemberRepository(database.DB)
+	memberHandler := handlers.NewMemberHandler(memberRepo)
+
 	// On attache NOTRE logger, ainsi que le module Recovery (qui évite que le serveur crash en cas de panic)
 	r.Use(middleware.SlogLogger(), gin.Recovery())
 
@@ -77,13 +81,13 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 		web.GET("/", handlers.GetDashboardPage)
 
 		// List des membres
-		web.GET("/members", handlers.GetMembersPage)
+		web.GET("/members", memberHandler.GetMembersPage)
 
 		// Page pour modifier un membre
-		web.GET("/members/edit/:id", handlers.GetMemberEditPage)
+		web.GET("/members/edit/:id", memberHandler.GetMemberEditPage)
 
 		// Page des archives (Membres supprimés)
-		web.GET("/members/archives", handlers.GetMemberArchivesPage)
+		web.GET("/members/archives", memberHandler.GetMemberArchivesPage)
 
 		// les routes spécifiques aux matériel
 		web.GET("/equipement", handlers.GetEquipementPage)
@@ -141,13 +145,13 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 	api.Use(middleware.AuthRequired())
 	{
 		// Gestion des membres
-		api.GET("/members", handlers.ListMembers)
-		api.POST("/members", handlers.CreateMember)
-		api.PUT("/members/:id", handlers.UpdateMember)
-		api.DELETE("/members/:id", handlers.DeleteMember)
-		api.GET("/members/:id/export", handlers.ExportMemberData)
-		api.DELETE("/members/:id/hard", handlers.HardDeleteMember)
-		api.PUT("/members/:id/reactivate", handlers.ReactivateMember)
+		api.GET("/members", memberHandler.ListMembers)
+		api.POST("/members", memberHandler.CreateMember)
+		api.PUT("/members/:id", memberHandler.UpdateMember)
+		api.DELETE("/members/:id", memberHandler.DeleteMember)
+		api.GET("/members/:id/export", memberHandler.ExportMemberData)
+		api.DELETE("/members/:id/hard", memberHandler.HardDeleteMember)
+		api.PUT("/members/:id/reactivate", memberHandler.ReactivateMember)
 
 		// Gestion équipement
 		//  Poignée

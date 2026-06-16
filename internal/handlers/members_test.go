@@ -22,11 +22,14 @@ func setupMemberTestDB() *gin.Engine {
 	database.DB = db
 	database.DB.AutoMigrate(&models.Member{})
 
+	repo := database.NewGormMemberRepository(db)
+	h := NewMemberHandler(repo)
+
 	r := gin.New()
-	r.POST("/members", CreateMember)
-	r.GET("/members", ListMembers)
-	r.PUT("/members/:id", UpdateMember)
-	r.DELETE("/members/:id", DeleteMember)
+	r.POST("/members", h.CreateMember)
+	r.GET("/members", h.ListMembers)
+	r.PUT("/members/:id", h.UpdateMember)
+	r.DELETE("/members/:id", h.DeleteMember)
 
 	return r
 }
