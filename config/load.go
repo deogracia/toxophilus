@@ -6,6 +6,9 @@ import (
 	"github.com/spf13/viper"
 )
 
+// LoadConfig charge la configuration et met en place les valeurs par défaut
+//
+// Il s'appuie sur viper pour charger le nécessaire et faire la fusion des configurations.
 func LoadConfig() error {
 	viper.SetConfigName("config")
 	viper.SetConfigType("toml")
