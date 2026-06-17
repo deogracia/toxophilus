@@ -59,6 +59,19 @@ type Limb struct {
 	Prix          float64
 }
 
+// LimbRepository définit l'interface de stockage pour les branches.
+type LimbRepository interface {
+	GetAll() ([]Limb, error)
+	GetArchived() ([]Limb, error)
+	GetByID(id uint) (*Limb, error)
+	GetByIDWithUnscoped(id uint) (*Limb, error)
+	Create(limb *Limb) error
+	Update(limb *Limb) error
+	Delete(limb *Limb) error
+	Reactivate(id uint) error
+	HardDelete(id uint) error
+}
+
 // Riser représente la poignée d'un arc
 type Riser struct {
 	gorm.Model
@@ -71,6 +84,19 @@ type Riser struct {
 	Disponibilite bool `gorm:"default:true"`
 	AnneeAchat    int
 	Prix          float64
+}
+
+// RiserRepository définit l'interface de stockage pour les poignées.
+type RiserRepository interface {
+	GetAll() ([]Riser, error)
+	GetArchived() ([]Riser, error)
+	GetByID(id uint) (*Riser, error)
+	GetByIDWithUnscoped(id uint) (*Riser, error)
+	Create(riser *Riser) error
+	Update(riser *Riser) error
+	Delete(riser *Riser) error
+	Reactivate(id uint) error
+	HardDelete(id uint) error
 }
 
 // Setting représente un parametre de notre application

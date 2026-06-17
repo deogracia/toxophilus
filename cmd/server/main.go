@@ -40,6 +40,10 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 	memberRepo := database.NewGormMemberRepository(database.DB)
 	memberHandler := handlers.NewMemberHandler(memberRepo)
 
+	riserRepo := database.NewGormRiserRepository(database.DB)
+	limbRepo := database.NewGormLimbRepository(database.DB)
+	equipementHandler := handlers.NewEquipementHandler(riserRepo, limbRepo)
+
 	// On attache NOTRE logger, ainsi que le module Recovery (qui évite que le serveur crash en cas de panic)
 	r.Use(middleware.SlogLogger(), gin.Recovery())
 
@@ -90,10 +94,10 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 		web.GET("/members/archives", memberHandler.GetMemberArchivesPage)
 
 		// les routes spécifiques aux matériel
-		web.GET("/equipement", handlers.GetEquipementPage)
-		web.GET("/equipement/edit/riser/:id", handlers.GetEditRiserPage)
-		web.GET("/equipement/edit/limb/:id", handlers.GetEditLimbPage)
-		web.GET("/equipement/archives", handlers.GetEquipementArchivesPage)
+		web.GET("/equipement", equipementHandler.GetEquipementPage)
+		web.GET("/equipement/edit/riser/:id", equipementHandler.GetEditRiserPage)
+		web.GET("/equipement/edit/limb/:id", equipementHandler.GetEditLimbPage)
+		web.GET("/equipement/archives", equipementHandler.GetEquipementArchivesPage)
 
 		// les routes pour les contrats
 		web.GET("/contracts", handlers.GetContractsPage)
@@ -155,20 +159,20 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 
 		// Gestion équipement
 		//  Poignée
-		api.GET("/risers", handlers.ListRisers)
-		api.POST("/risers", handlers.CreateRiser)
-		api.PUT("/risers/:id", handlers.UpdateRiser)
-		api.DELETE("/risers/:id", handlers.DeleteRiser)
-		api.DELETE("/risers/:id/hard", handlers.HardDeleteRiser)
-		api.PUT("/risers/:id/reactivate", handlers.ReactivateRiser)
+		api.GET("/risers", equipementHandler.ListRisers)
+		api.POST("/risers", equipementHandler.CreateRiser)
+		api.PUT("/risers/:id", equipementHandler.UpdateRiser)
+		api.DELETE("/risers/:id", equipementHandler.DeleteRiser)
+		api.DELETE("/risers/:id/hard", equipementHandler.HardDeleteRiser)
+		api.PUT("/risers/:id/reactivate", equipementHandler.ReactivateRiser)
 
 		// Branches
-		api.GET("/limbs", handlers.ListLimbs)
-		api.POST("/limbs", handlers.CreateLimb)
-		api.PUT("/limbs/:id", handlers.UpdateLimb)
-		api.DELETE("/limbs/:id", handlers.DeleteLimb)
-		api.DELETE("/limbs/:id/hard", handlers.HardDeleteLimb)
-		api.PUT("/limbs/:id/reactivate", handlers.ReactivateLimb)
+		api.GET("/limbs", equipementHandler.ListLimbs)
+		api.POST("/limbs", equipementHandler.CreateLimb)
+		api.PUT("/limbs/:id", equipementHandler.UpdateLimb)
+		api.DELETE("/limbs/:id", equipementHandler.DeleteLimb)
+		api.DELETE("/limbs/:id/hard", equipementHandler.HardDeleteLimb)
+		api.PUT("/limbs/:id/reactivate", equipementHandler.ReactivateLimb)
 
 		// Contrats
 		api.POST("/contracts", handlers.CreateContract)
