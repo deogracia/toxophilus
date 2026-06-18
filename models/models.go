@@ -106,6 +106,14 @@ type Setting struct {
 	Valeur string
 }
 
+// SettingRepository définit l'interface de stockage pour les réglages de l'application.
+type SettingRepository interface {
+	GetAll() ([]Setting, error)
+	GetByKey(key string) (*Setting, error)
+	Save(setting *Setting) error
+	SaveAll(settings map[string]string) error
+}
+
 // Contract représente un contrat liant Member, Limb et riser
 type Contract struct {
 	gorm.Model
@@ -143,4 +151,13 @@ type Contract struct {
 	RecuSigne       bool   `gorm:"default:false" json:"recu_signe"`
 	CheminPDFGenere string `json:"chemin_pdf_genere"` // Contrat vierge issu de l'application
 	CheminPDFSigne  string `json:"chemin_pdf_signe"`  // Contrat signé retourné (scan/photo)
+}
+
+// ContractRepository définit l'interface de stockage pour les contrats de location.
+type ContractRepository interface {
+	GetAll() ([]Contract, error)
+	GetByID(id uint) (*Contract, error)
+	Create(contract *Contract) error
+	Update(contract *Contract) error
+	Delete(contract *Contract) error
 }

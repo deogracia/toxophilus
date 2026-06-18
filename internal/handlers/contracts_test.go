@@ -16,7 +16,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func setupContractTestDB() *gin.Engine {
+func setupContractTestDB() (*gin.Engine, *ContractHandler) {
 	gin.SetMode(gin.TestMode)
 	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
 	if err != nil {
@@ -25,23 +25,31 @@ func setupContractTestDB() *gin.Engine {
 	database.DB = db
 
 	// Migration des tables nécessaires
-	err = database.DB.AutoMigrate(&models.Member{}, &models.Riser{}, &models.Limb{}, &models.Contract{})
+	err = database.DB.AutoMigrate(&models.Member{}, &models.Riser{}, &models.Limb{}, &models.Contract{}, &models.Setting{})
 	if err != nil {
 		panic("Erreur lors de la migration de test: " + err.Error())
 	}
 
-	r := gin.Default()
+	repoContract := database.NewGormContractRepository(db)
+	repoMember := database.NewGormMemberRepository(db)
+	repoRiser := database.NewGormRiserRepository(db)
+	repoLimb := database.NewGormLimbRepository(db)
+	repoSetting := database.NewGormSettingRepository(db)
+
+	h := NewContractHandler(repoContract, repoMember, repoRiser, repoLimb, repoSetting)
+
+	r := gin.New()
 
 	tmpl := template.Must(template.New("contract_details.html").Parse("<h1>Template de test</h1>"))
 	r.SetHTMLTemplate(tmpl)
-	return r
+
+	return r, h
 }
 
-func TestCreateContractAndUpdateStock(t *testing.T) {
-	r := setupContractTestDB()
+func TestCreateContract(t *testing.T) {
+	r, h := setupContractTestDB()
 
-	// Déclaration de la route à tester
-	r.POST("/api/contracts", CreateContract)
+	r.POST("/api/contracts", h.CreateContract)
 
 	// ==========================================
 	// 1. PRÉPARATION DES DONNÉES EN BASE
@@ -110,10 +118,10 @@ func TestCreateContractAndUpdateStock(t *testing.T) {
 }
 
 func TestGetContractDetailsPage(t *testing.T) {
-	r := setupContractTestDB()
+	r, h := setupContractTestDB()
 
 	// Déclaration de la route à tester
-	r.GET("/contracts/:id", GetContractDetailsPage)
+	r.GET("/contracts/:id", h.GetContractDetailsPage)
 
 	// ==========================================
 	// 1. PRÉPARATION DES DONNÉES EN BASE
@@ -159,7 +167,7 @@ func TestGetContractDetailsPage(t *testing.T) {
 
 func TestUpdateContractStatus(t *testing.T) {
 	// 1. Préparation de la base de données de test
-	r := setupContractTestDB()
+	r, h := setupContractTestDB()
 
 	// Création d'une poignée et de branches factices considérées comme louées (non disponibles)
 	riser := models.Riser{Marque: "Hoyt Test", Disponibilite: false}
@@ -177,7 +185,7 @@ func TestUpdateContractStatus(t *testing.T) {
 	database.DB.Create(&contract)
 
 	// 2. Ajout de la route à tester
-	r.PUT("/contracts/:id/status", UpdateContractStatus)
+	r.PUT("/contracts/:id/status", h.UpdateContractStatus)
 
 	// 3. Préparation des données du formulaire (Simulation de HTMX)
 	formData := url.Values{}

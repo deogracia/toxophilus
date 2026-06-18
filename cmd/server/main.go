@@ -44,6 +44,12 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 	limbRepo := database.NewGormLimbRepository(database.DB)
 	equipementHandler := handlers.NewEquipementHandler(riserRepo, limbRepo)
 
+	settingRepo := database.NewGormSettingRepository(database.DB)
+	settingHandler := handlers.NewSettingHandler(settingRepo)
+
+	contractRepo := database.NewGormContractRepository(database.DB)
+	contractHandler := handlers.NewContractHandler(contractRepo, memberRepo, riserRepo, limbRepo, settingRepo)
+
 	// On attache NOTRE logger, ainsi que le module Recovery (qui évite que le serveur crash en cas de panic)
 	r.Use(middleware.SlogLogger(), gin.Recovery())
 
@@ -100,15 +106,15 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 		web.GET("/equipement/archives", equipementHandler.GetEquipementArchivesPage)
 
 		// les routes pour les contrats
-		web.GET("/contracts", handlers.GetContractsPage)
-		web.GET("/contracts/new", handlers.GetNewContractPage)
-		web.GET("/contracts/:id", handlers.GetContractDetailsPage)
-		web.GET("/contracts/:id/pdf", handlers.DownloadContractPDF)
-		web.PUT("/contracts/:id/status", handlers.UpdateContractStatus)
+		web.GET("/contracts", contractHandler.GetContractsPage)
+		web.GET("/contracts/new", contractHandler.GetNewContractPage)
+		web.GET("/contracts/:id", contractHandler.GetContractDetailsPage)
+		web.GET("/contracts/:id/pdf", contractHandler.DownloadContractPDF)
+		web.PUT("/contracts/:id/status", contractHandler.UpdateContractStatus)
 
 		// les routes pour les settings
-		web.GET("/settings", handlers.GetSettingsPage)
-		web.POST("/settings/save", handlers.ProcessSettingsSave)
+		web.GET("/settings", settingHandler.GetSettingsPage)
+		web.POST("/settings/save", settingHandler.ProcessSettingsSave)
 
 	}
 
@@ -175,7 +181,7 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 		api.PUT("/limbs/:id/reactivate", equipementHandler.ReactivateLimb)
 
 		// Contrats
-		api.POST("/contracts", handlers.CreateContract)
+		api.POST("/contracts", contractHandler.CreateContract)
 
 	}
 

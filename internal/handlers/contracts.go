@@ -4,23 +4,45 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/deogracia/toxophilus/config"
-	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/models"
 	"github.com/deogracia/toxophilus/services"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-// GetContractsPage affiche la liste de tous les contrats de location
-func GetContractsPage(c *gin.Context) {
-	var contracts []models.Contract
+// ContractHandler gère les requêtes HTTP pour les contrats de location.
+type ContractHandler struct {
+	contractRepo models.ContractRepository
+	memberRepo   models.MemberRepository
+	riserRepo    models.RiserRepository
+	limbRepo     models.LimbRepository
+	settingRepo  models.SettingRepository
+}
 
-	// Preload charge automatiquement les données associées via les clés étrangères.
-	// C'est indispensable pour que {{ .Member.Prenom }} ne soit pas vide dans le HTML.
-	err := database.DB.Preload("Member").Preload("Riser").Preload("Limb").Find(&contracts).Error
+// NewContractHandler crée une nouvelle instance de ContractHandler.
+func NewContractHandler(
+	contractRepo models.ContractRepository,
+	memberRepo models.MemberRepository,
+	riserRepo models.RiserRepository,
+	limbRepo models.LimbRepository,
+	settingRepo models.SettingRepository,
+) *ContractHandler {
+	return &ContractHandler{
+		contractRepo: contractRepo,
+		memberRepo:   memberRepo,
+		riserRepo:    riserRepo,
+		limbRepo:     limbRepo,
+		settingRepo:  settingRepo,
+	}
+}
+
+// GetContractsPage affiche la liste de tous les contrats de location
+func (h *ContractHandler) GetContractsPage(c *gin.Context) {
+	contracts, err := h.contractRepo.GetAll()
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Erreur lors du chargement des contrats : %v", err)
 		return
@@ -48,37 +70,58 @@ func GetContractsPage(c *gin.Context) {
 }
 
 // GetNewContractPage affiche le formulaire de création d'un contrat
-func GetNewContractPage(c *gin.Context) {
-	var members []models.Member
-	var risers []models.Riser
-	var limbs []models.Limb
+func (h *ContractHandler) GetNewContractPage(c *gin.Context) {
+	members, err := h.memberRepo.GetAll()
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Erreur lors du chargement des membres : %v", err)
+		return
+	}
 
-	// On récupère les membres triés par ordre alphabétique
-	database.DB.Order("nom ASC").Find(&members)
+	risers, err := h.riserRepo.GetAll()
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Erreur lors du chargement des poignées : %v", err)
+		return
+	}
 
-	// On récupère le matériel disponible (GORM ignore automatiquement ceux qui sont dans les archives)
-	database.DB.Where("disponibilite = ?", true).Find(&risers)
-	database.DB.Where("disponibilite = ?", true).Find(&limbs)
+	limbs, err := h.limbRepo.GetAll()
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Erreur lors du chargement des branches : %v", err)
+		return
+	}
+
+	// Filtrer manuellement les disponibles pour la création de contrat
+	var availableRisers []models.Riser
+	for _, r := range risers {
+		if r.Disponibilite {
+			availableRisers = append(availableRisers, r)
+		}
+	}
+
+	var availableLimbs []models.Limb
+	for _, l := range limbs {
+		if l.Disponibilite {
+			availableLimbs = append(availableLimbs, l)
+		}
+	}
 
 	c.HTML(http.StatusOK, "contract_new.html", gin.H{
 		"titre":   "Nouveau Contrat - Club Toxophilus",
 		"active":  "contracts",
 		"Members": members,
-		"Risers":  risers,
-		"Limbs":   limbs,
+		"Risers":  availableRisers,
+		"Limbs":   availableLimbs,
 		"Version": config.AppVersion,
 	})
 }
 
 // CreateContract réceptionne le formulaire standard et crée le contrat en base
-func CreateContract(c *gin.Context) {
-	// Gin va utiliser les tags 'form' pour lier automatiquement le texte HTML aux bons types Go !
+func (h *ContractHandler) CreateContract(c *gin.Context) {
 	var input struct {
 		MemberID        uint    `form:"member_id" binding:"required"`
 		DateDebut       string  `form:"date_debut" binding:"required"`
 		DateFin         string  `form:"date_fin" binding:"required"`
-		RiserID         *uint   `form:"riser_id"` // Si vide, Gin le laisse à nil automatiquement
-		LimbID          *uint   `form:"limb_id"`  // Si vide, Gin le laisse à nil automatiquement
+		RiserID         *uint   `form:"riser_id"`
+		LimbID          *uint   `form:"limb_id"`
 		Accessoires     string  `form:"accessoires"`
 		Commentaire     string  `form:"commentaire"`
 		MontantLocation float64 `form:"montant_location"`
@@ -87,13 +130,12 @@ func CreateContract(c *gin.Context) {
 		ModePaiement    string  `form:"mode_paiement"`
 	}
 
-	// ShouldBind au lieu de ShouldBindJSON lit directement le Form Data standard
 	if err := c.ShouldBind(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Veuillez vérifier les champs du formulaire."})
 		return
 	}
 
-	// 🔴 BLOC DE DÉBOGAGE : Inspection brute du formulaire reçu
+	// 🔴 BLOC DE DÉBOGAGE
 	log.Println("============ GIN BINDING DEBUG ============")
 	if input.RiserID == nil {
 		log.Println("🔍 RiserID reçu du HTML : est strictement NIL (Pointeur nul)")
@@ -108,7 +150,6 @@ func CreateContract(c *gin.Context) {
 	}
 	log.Println("==============Fin Gin Binding Debug=============================")
 
-	// 🛠️ SÉCURITÉ : Si Gin a lié une chaîne vide vers un pointeur de 0, on le remet à nil
 	if input.RiserID != nil && *input.RiserID == 0 {
 		input.RiserID = nil
 	}
@@ -116,7 +157,6 @@ func CreateContract(c *gin.Context) {
 		input.LimbID = nil
 	}
 
-	// Conversion des dates
 	debut, err := time.Parse("2006-01-02", input.DateDebut)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Format de date de début invalide"})
@@ -128,7 +168,6 @@ func CreateContract(c *gin.Context) {
 		return
 	}
 
-	// Initialisation du contrat avec les données directes
 	contract := models.Contract{
 		MemberID:        input.MemberID,
 		DateDebut:       debut,
@@ -143,44 +182,52 @@ func CreateContract(c *gin.Context) {
 		ModePaiement:    input.ModePaiement,
 	}
 
-	if err := database.DB.Omit("Riser", "Limb").Create(&contract).Error; err != nil {
+	if err := h.contractRepo.Create(&contract); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de l'enregistrement du contrat"})
 		return
 	}
 
-	// MISE À JOUR DES STOCKS (Disponibilité)
-	// Si une poignée a été louée, on la marque comme indisponible
+	// MISE À JOUR DES STOCKS (Disponibilité) via les repositories d'équipement
 	if input.RiserID != nil {
-		database.DB.Model(&models.Riser{}).Where("id = ?", input.RiserID).Update("disponibilite", false)
+		riser, err := h.riserRepo.GetByID(*input.RiserID)
+		if err == nil {
+			riser.Disponibilite = false
+			_ = h.riserRepo.Update(riser)
+		}
 	}
-	// Si des branches ont été louées, on les marque comme indisponibles
 	if input.LimbID != nil {
-		database.DB.Model(&models.Limb{}).Where("id = ?", input.LimbID).Update("disponibilite", false)
+		limb, err := h.limbRepo.GetByID(*input.LimbID)
+		if err == nil {
+			limb.Disponibilite = false
+			_ = h.limbRepo.Update(limb)
+		}
 	}
+
 	c.Header("HX-Redirect", "/contracts")
 	c.Status(http.StatusCreated)
 }
 
 // GetContractDetailsPage affiche le récapitulatif complet d'un contrat spécifique
-func GetContractDetailsPage(c *gin.Context) {
-	id := c.Param("id")
-	var contract models.Contract
-
-	// On précharge toutes les relations pour avoir les infos complètes
-	err := database.DB.Preload("Member").Preload("Riser").Preload("Limb").First(&contract, id).Error
+func (h *ContractHandler) GetContractDetailsPage(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		// Enregistrement non trouvé
+		c.String(http.StatusBadRequest, "ID de contrat invalide")
+		return
+	}
+
+	contract, err := h.contractRepo.GetByID(uint(id))
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.String(http.StatusNotFound, "Erreur: le contrat %s n'existe pas!", id)
+			c.String(http.StatusNotFound, "Erreur: le contrat %s n'existe pas!", idStr)
 			return
 		}
-		// pour toute autre erreur, on
-		c.String(http.StatusInternalServerError, "Erreur lors du chargement du contrat %s! Erreur: %v", id, err.Error())
+		c.String(http.StatusInternalServerError, "Erreur lors du chargement du contrat %s! Erreur: %v", idStr, err.Error())
 		return
 	}
 
 	c.HTML(http.StatusOK, "contract_details.html", gin.H{
-		"titre":    "Détails du contrat #" + id,
+		"titre":    "Détails du contrat #" + idStr,
 		"active":   "contracts",
 		"Contract": contract,
 		"Version":  config.AppVersion,
@@ -188,12 +235,16 @@ func GetContractDetailsPage(c *gin.Context) {
 }
 
 // DownloadContractPDF génère et envoie le PDF au navigateur
-func DownloadContractPDF(c *gin.Context) {
-	id := c.Param("id")
-	var contract models.Contract
+func (h *ContractHandler) DownloadContractPDF(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.String(http.StatusBadRequest, "ID de contrat invalide")
+		return
+	}
 
-	// 1. Récupération du contrat
-	if err := database.DB.Preload("Member").Preload("Riser").Preload("Limb").First(&contract, id).Error; err != nil {
+	contract, err := h.contractRepo.GetByID(uint(id))
+	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.String(http.StatusNotFound, "Erreur 404 : Le contrat n'existe pas.")
 			return
@@ -202,9 +253,12 @@ func DownloadContractPDF(c *gin.Context) {
 		return
 	}
 
-	// 2. Récupération des réglages dynamiques pour l'Open Source
-	var settingsList []models.Setting
-	database.DB.Find(&settingsList)
+	// Récupération des réglages via SettingRepository
+	settingsList, err := h.settingRepo.GetAll()
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Erreur lors de la récupération des réglages : %v", err)
+		return
+	}
 
 	settingsMap := make(map[string]string)
 	for _, s := range settingsList {
@@ -212,32 +266,32 @@ func DownloadContractPDF(c *gin.Context) {
 		log.Println("contracts.go - boucle de transformation. Clé -> " + s.Cle + " Valeur -> " + s.Valeur)
 	}
 
-	// 3. Appel du service de génération avec les settings
-	filename, err := services.GenerateContractPDF(contract, settingsMap)
+	filename, err := services.GenerateContractPDF(*contract, settingsMap)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Erreur lors de la création du PDF : %v", err)
 		return
 	}
 
-	// 4. Téléchargement
 	c.FileAttachment(filename, filename)
 }
 
 // UpdateContractStatus modifie l'état d'un contrat via HTMX
-func UpdateContractStatus(c *gin.Context) {
-	id := c.Param("id")
-	var contract models.Contract
+func (h *ContractHandler) UpdateContractStatus(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.String(http.StatusBadRequest, "ID de contrat invalide")
+		return
+	}
 
-	// 1. On récupère le contrat actuel
-	if err := database.DB.First(&contract, id).Error; err != nil {
+	contract, err := h.contractRepo.GetByID(uint(id))
+	if err != nil {
 		c.String(http.StatusNotFound, "Contrat introuvable")
 		return
 	}
 
-	// 2. On garde l'ancien statut en mémoire
 	ancienStatut := contract.Statut
 
-	// 3. On récupère les nouvelles valeurs envoyées par HTMX
 	nouveauStatut := c.PostForm("statut")
 	nouvelEtatPaiement := c.PostForm("etat_paiement")
 	nouveauModePaiement := c.PostForm("mode_paiement")
@@ -252,32 +306,44 @@ func UpdateContractStatus(c *gin.Context) {
 		contract.RecuSigne = false
 	}
 
-	// 4. Sauvegarde des nouvelles infos du contrat
-	if err := database.DB.Save(&contract).Error; err != nil {
+	if err := h.contractRepo.Update(contract); err != nil {
 		c.String(http.StatusInternalServerError, "Erreur lors de la sauvegarde")
 		return
 	}
 
-	// 5. LOGIQUE MÉTIER DU STOCK
+	// LOGIQUE MÉTIER DU STOCK (via repositories injectés)
 	if nouveauStatut == "Terminé" && ancienStatut != "Terminé" {
-		// Le matériel revient au club
 		if contract.RiserID != nil {
-			database.DB.Model(&models.Riser{}).Where("id = ?", contract.RiserID).Update("disponibilite", true)
+			riser, err := h.riserRepo.GetByID(*contract.RiserID)
+			if err == nil {
+				riser.Disponibilite = true
+				_ = h.riserRepo.Update(riser)
+			}
 		}
 		if contract.LimbID != nil {
-			database.DB.Model(&models.Limb{}).Where("id = ?", contract.LimbID).Update("disponibilite", true)
+			limb, err := h.limbRepo.GetByID(*contract.LimbID)
+			if err == nil {
+				limb.Disponibilite = true
+				_ = h.limbRepo.Update(limb)
+			}
 		}
 	} else if ancienStatut == "Terminé" && nouveauStatut != "Terminé" {
-		// Annulation de la restitution, on rebloque le matériel
 		if contract.RiserID != nil {
-			database.DB.Model(&models.Riser{}).Where("id = ?", contract.RiserID).Update("disponibilite", false)
+			riser, err := h.riserRepo.GetByID(*contract.RiserID)
+			if err == nil {
+				riser.Disponibilite = false
+				_ = h.riserRepo.Update(riser)
+			}
 		}
 		if contract.LimbID != nil {
-			database.DB.Model(&models.Limb{}).Where("id = ?", contract.LimbID).Update("disponibilite", false)
+			limb, err := h.limbRepo.GetByID(*contract.LimbID)
+			if err == nil {
+				limb.Disponibilite = false
+				_ = h.limbRepo.Update(limb)
+			}
 		}
 	}
 
-	// 6. Rafraîchissement automatique de la page
 	c.Header("HX-Refresh", "true")
 	c.Status(http.StatusOK)
 }

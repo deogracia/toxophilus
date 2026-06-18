@@ -6,15 +6,27 @@ import (
 	"path/filepath"
 
 	"github.com/deogracia/toxophilus/config"
-	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/models"
 	"github.com/gin-gonic/gin"
 )
 
+// SettingHandler gère les requêtes HTTP pour les réglages métiers.
+type SettingHandler struct {
+	repo models.SettingRepository
+}
+
+// NewSettingHandler crée une nouvelle instance de SettingHandler.
+func NewSettingHandler(repo models.SettingRepository) *SettingHandler {
+	return &SettingHandler{repo: repo}
+}
+
 // GetSettingsPage affiche le formulaire avec les valeurs actuelles de la BDD
-func GetSettingsPage(c *gin.Context) {
-	var settingsList []models.Setting
-	database.DB.Find(&settingsList)
+func (h *SettingHandler) GetSettingsPage(c *gin.Context) {
+	settingsList, err := h.repo.GetAll()
+	if err != nil {
+		c.HTML(http.StatusInternalServerError, "index.html", gin.H{"error": "Erreur lors du chargement des réglages"})
+		return
+	}
 
 	// On transforme la liste en Map pour la lire facilement dans le template
 	settingsMap := make(map[string]string)
@@ -31,7 +43,7 @@ func GetSettingsPage(c *gin.Context) {
 }
 
 // ProcessSettingsSave traite l'envoi du formulaire et l'upload du fichier
-func ProcessSettingsSave(c *gin.Context) {
+func (h *SettingHandler) ProcessSettingsSave(c *gin.Context) {
 	// 1. Récupération des champs textes classiques
 	fields := []string{
 		"pdf_club_name", "pdf_club_subtitle",
@@ -40,11 +52,9 @@ func ProcessSettingsSave(c *gin.Context) {
 		"pdf_clauses_location",
 	}
 
+	settingsToSave := make(map[string]string)
 	for _, field := range fields {
-		valeur := c.PostForm(field)
-		saveSetting(field, valeur)
-		// On sauvegarde ou met à jour dans la table settings
-
+		settingsToSave[field] = c.PostForm(field)
 	}
 
 	// Gestion spécifique de la case à cocher (si vide, on stocke "false")
@@ -52,7 +62,13 @@ func ProcessSettingsSave(c *gin.Context) {
 	if showContact != "true" {
 		showContact = "false"
 	}
-	saveSetting("pdf_show_contact_footer", showContact)
+	settingsToSave["pdf_show_contact_footer"] = showContact
+
+	// Enregistrement par lot via le repository (transactionnel)
+	if err := h.repo.SaveAll(settingsToSave); err != nil {
+		c.HTML(http.StatusInternalServerError, "settings.html", gin.H{"error": "Impossible d'enregistrer les réglages."})
+		return
+	}
 
 	// 2. Gestion de l'upload du bandeau image
 	file, err := c.FormFile("header_image")
@@ -68,31 +84,18 @@ func ProcessSettingsSave(c *gin.Context) {
 
 		// Gin sauvegarde le fichier physiquement sur le disque dur du club
 		if err := c.SaveUploadedFile(file, dst); err == nil {
-			// On enregistre ce chemin dans les réglages
-			var setting models.Setting
-			if database.DB.Where("cle = ?", "pdf_header_image").First(&setting).Error != nil {
-				database.DB.Create(&models.Setting{Cle: "pdf_header_image", Valeur: dst})
+			// On enregistre ce chemin dans les réglages via le repository
+			setting, err := h.repo.GetByKey("pdf_header_image")
+			if err != nil {
+				// Non trouvé, on le crée
+				_ = h.repo.Save(&models.Setting{Cle: "pdf_header_image", Valeur: dst})
 			} else {
 				setting.Valeur = dst
-				database.DB.Save(&setting)
+				_ = h.repo.Save(setting)
 			}
 		}
 	}
 
 	// Redirection vers la page des paramètres avec un message de succès
 	c.Redirect(http.StatusSeeOther, "/settings")
-}
-
-// Fonction utilitaire interne pour éviter la répétition du bloc GORM
-func saveSetting(cle, valeur string) {
-	var setting models.Setting
-	result := database.DB.Where("cle = ?", cle).First(&setting)
-	if result.Error != nil {
-		// Nouvelle clé
-		database.DB.Create(&models.Setting{Cle: cle, Valeur: valeur})
-	} else {
-		// Mise à jour
-		setting.Valeur = valeur
-		database.DB.Save(&setting)
-	}
 }
