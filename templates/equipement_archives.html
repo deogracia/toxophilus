@@ -1,122 +1,124 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="light">
+<html lang="fr">
 {{ template "head" . }}
 <body>
-    <header class="container">
-        {{ template "nav" . }}
-    </header>
-    
     <main class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <h2>📦 Archives du Matériel</h2>
-            <a href="/equipement" role="button" class="secondary outline">⬅️ Retour au matériel actif</a>
-        </div>
-
-        <p>Retrouvez ici le matériel supprimé. Vous pouvez le restaurer pour le remettre en location, ou l'effacer définitivement de la base de données.</p>
-
-        <section id="archives-risers" style="margin-top: 2rem;">
-            <h3>Poignées archivées</h3>
-            {{ if .Risers }}
-            <div class="overflow-auto">
-                <table class="striped">
-                    <thead>
-                        <tr>
-                            <th>N° Série</th>
-                            <th>Marque</th>
-                            <th>Modèle</th>
-                            <th>Taille</th>
-                            <th>Latéralité</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{ range .Risers }}
-                        <tr>
-                            <td><strong>{{ .NumeroSerie }}</strong></td>
-                            <td>{{ .Marque }}</td>
-                            <td>{{ .Modele }}</td>
-                            <td>{{ .Taille }}</td>
-                            <td>{{ .Lateralite }}</td>
-                            <td style="display: flex; gap: 0.5rem; align-items: center; white-space: nowrap;">
-                                <button class="outline"
-                                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
-                                        hx-put="/api/risers/{{ .ID }}/reactivate"
-                                        hx-target="closest tr"
-                                        hx-swap="outerHTML"
-                                        title="Restaurer cette poignée">
-                                    ♻️
-                                </button>
-                                <button class="outline contrast"
-                                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
-                                        hx-delete="/api/risers/{{ .ID }}/hard"
-                                        hx-target="closest tr"
-                                        hx-swap="outerHTML"
-                                        hx-confirm="Supprimer DÉFINITIVEMENT cette poignée ? Cette action détruira son historique."
-                                        title="Supprimer définitivement">
-                                    🔥
-                                </button>
-                            </td>
-                        </tr>
-                        {{ end }}
-                    </tbody>
-                </table>
+        {{ template "nav" . }}
+        <hr>
+        <section>
+            <div class="page-header">
+                <h2>📦 Archives du Matériel</h2>
+                <a href="/equipement" role="button" class="secondary outline">⬅️ Retour au matériel actif</a>
             </div>
-            {{ else }}
-            <article>Aucune poignée dans les archives.</article>
-            {{ end }}
-        </section>
 
-        <section id="archives-limbs" style="margin-top: 3rem;">
-            <h3>Branches archivées</h3>
-            {{ if .Limbs }}
-            <div class="overflow-auto">
-                <table class="striped">
-                    <thead>
-                        <tr>
-                            <th>N° Série</th>
-                            <th>Marque</th>
-                            <th>Modèle</th>
-                            <th>Taille</th>
-                            <th>Puissance</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{ range .Limbs }}
-                        <tr>
-                            <td><strong>{{ .NumeroSerie }}</strong></td>
-                            <td>{{ .Marque }}</td>
-                            <td>{{ .Modele }}</td>
-                            <td>{{ .Taille }}</td>
-                            <td>{{ .Puissance }}</td>
-                            <td style="display: flex; gap: 0.5rem; align-items: center; white-space: nowrap;">
-                                <button class="outline"
-                                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
-                                        hx-put="/api/limbs/{{ .ID }}/reactivate"
-                                        hx-target="closest tr"
-                                        hx-swap="outerHTML"
-                                        title="Restaurer ces branches">
-                                    ♻️
-                                </button>
-                                <button class="outline contrast"
-                                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
-                                        hx-delete="/api/limbs/{{ .ID }}/hard"
-                                        hx-target="closest tr"
-                                        hx-swap="outerHTML"
-                                        hx-confirm="Supprimer DÉFINITIVEMENT ces branches ? Cette action détruira leur historique."
-                                        title="Supprimer définitivement">
-                                    🔥
-                                </button>
-                            </td>
-                        </tr>
-                        {{ end }}
-                    </tbody>
-                </table>
-            </div>
-            {{ else }}
-            <article>Aucunes branches dans les archives.</article>
-            {{ end }}
+            <p>Retrouvez ici le matériel supprimé. Vous pouvez le restaurer pour le remettre en location, ou l'effacer définitivement de la base de données.</p>
+
+            <section id="archives-risers" class="mt-4">
+                <h3>Poignées archivées</h3>
+                {{ if .Risers }}
+                <div class="overflow-auto">
+                    <table class="striped">
+                        <thead>
+                            <tr>
+                                <th>N° Série</th>
+                                <th>Marque</th>
+                                <th>Modèle</th>
+                                <th>Taille</th>
+                                <th>Latéralité</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{ range .Risers }}
+                            <tr>
+                                <td><strong>{{ .NumeroSerie }}</strong></td>
+                                <td>{{ .Marque }}</td>
+                                <td>{{ .Modele }}</td>
+                                <td>{{ .Taille }}</td>
+                                <td>{{ .Lateralite }}</td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button class="outline btn-compact"
+                                                hx-put="/api/risers/{{ .ID }}/reactivate"
+                                                hx-target="closest tr"
+                                                hx-swap="outerHTML"
+                                                title="Restaurer cette poignée">
+                                            ♻️
+                                        </button>
+                                        <button class="outline contrast btn-compact"
+                                                hx-delete="/api/risers/{{ .ID }}/hard"
+                                                hx-target="closest tr"
+                                                hx-swap="outerHTML"
+                                                hx-confirm="Supprimer DÉFINITIVEMENT cette poignée ? Cette action détruira son historique."
+                                                title="Supprimer définitivement">
+                                            🔥
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+                {{ else }}
+                <article>Aucune poignée dans les archives.</article>
+                {{ end }}
+            </section>
+
+            <section id="archives-limbs" class="mt-4">
+                <h3>Branches archivées</h3>
+                {{ if .Limbs }}
+                <div class="overflow-auto">
+                    <table class="striped">
+                        <thead>
+                            <tr>
+                                <th>N° Série</th>
+                                <th>Marque</th>
+                                <th>Modèle</th>
+                                <th>Taille</th>
+                                <th>Puissance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{ range .Limbs }}
+                            <tr>
+                                <td><strong>{{ .NumeroSerie }}</strong></td>
+                                <td>{{ .Marque }}</td>
+                                <td>{{ .Modele }}</td>
+                                <td>{{ .Taille }}</td>
+                                <td>{{ .Puissance }}</td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button class="outline btn-compact"
+                                                hx-put="/api/limbs/{{ .ID }}/reactivate"
+                                                hx-target="closest tr"
+                                                hx-swap="outerHTML"
+                                                title="Restaurer ces branches">
+                                            ♻️
+                                        </button>
+                                        <button class="outline contrast btn-compact"
+                                                hx-delete="/api/limbs/{{ .ID }}/hard"
+                                                hx-target="closest tr"
+                                                hx-swap="outerHTML"
+                                                hx-confirm="Supprimer DÉFINITIVEMENT ces branches ? Cette action détruira leur historique."
+                                                title="Supprimer définitivement">
+                                            🔥
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {{ end }}
+                        </tbody>
+                    </table>
+                </div>
+                {{ else }}
+                <article>Aucunes branches dans les archives.</article>
+                {{ end }}
+            </section>
         </section>
     </main>
+
+    {{ template "footer" . }}
 </body>
 </html>

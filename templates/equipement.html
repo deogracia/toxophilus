@@ -4,11 +4,11 @@
 <body>
     <main class="container">
         {{ template "nav" . }}
-
+        <hr>
         <section>
             <h2>🏹 Inventaire du Matériel</h2>
             <p>Gestion des arcs d'initiation et de prêt.</p>
-            <p style="text-align: right;">
+            <p class="text-right">
                 <a href="/equipement/archives" class="secondary">🗃️ Voir le matériel supprimé</a>
             </p>
 
@@ -17,10 +17,9 @@
                     <header>
                         <h3>Poignées (Risers)</h3>
                     </header>
-                    <details style="margin-bottom: 1rem;">
+                    <details class="mb-4">
                         <summary role="button" class="secondary outline">➕ Ajouter une poignée</summary>
-                        <form hx-post="/api/risers"
-                              hx-ext="json-enc">
+                        <form hx-post="/api/risers" hx-ext="json-enc">
                             <div class="grid">
                                 <label>Numéro de série <input type="text" name="numero_serie" placeholder="Ex: P-001" required></label>
                                 <label>Marque <input type="text" name="marque"></label>
@@ -60,7 +59,7 @@
                                 </label>
                             </div>
                             <label>Remarques <input type="text" name="remarques" placeholder="État général..."></label>
-                            <div id="error-poignee" style="color: var(--pico-del-color); margin-bottom: 1rem; font-weight: bold;"></div>
+                            <div id="error-poignee" class="error-box"></div>
                             <button type="submit">Enregistrer</button>
                         </form>
                     </details>
@@ -83,21 +82,22 @@
                                     <td>{{ .Lateralite }}</td>
                                     <td>{{ .Taille }}</td>
                                     <td>
-                                        <a href="/equipement/edit/riser/{{ .ID }}" role="button" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;" title="Modifier">
-                                            ✏️
-                                        </a>
-                                        <button class="outline contrast"
-                                                style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
-                                                hx-delete="/api/risers/{{ .ID }}"
-                                                hx-target="closest tr"
-                                                hx-swap="delete"
-                                                hx-confirm="Supprimer cette poignée?">
-                                                🗑️
+                                        <div class="table-actions">
+                                            <a href="/equipement/edit/riser/{{ .ID }}" role="button" class="outline btn-compact" title="Modifier">
+                                                ✏️
+                                            </a>
+                                            <button class="outline contrast btn-compact"
+                                                    hx-delete="/api/risers/{{ .ID }}"
+                                                    hx-target="closest tr"
+                                                    hx-swap="delete"
+                                                    hx-confirm="Supprimer cette poignée?">
+                                                    🗑️
                                             </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 {{ else }}
-                                <tr><td colspan="4" style="text-align: center;">Aucune poignée en stock.</td></tr>
+                                <tr><td colspan="5" class="text-center">Aucune poignée en stock.</td></tr>
                                 {{ end }}
                             </tbody>
                         </table>
@@ -108,10 +108,9 @@
                     <header>
                         <h3>Branches (Limbs)</h3>
                     </header>
-                    <details style="margin-bottom: 1rem;">
+                    <details class="mb-4">
                         <summary role="button" class="secondary outline">➕ Ajouter des branches</summary>
-                        <form hx-post="/api/limbs"
-                              hx-ext="json-enc">
+                        <form hx-post="/api/limbs" hx-ext="json-enc">
                             <div class="grid">
                                 <label>Numéro de série <input type="text" name="numero_serie" placeholder="Ex: B-001" required></label>
                                 <label>Marque <input type="text" name="marque"></label>
@@ -127,7 +126,7 @@
                                 <label>Puissance (lbs) <input type="number" name="puissance" required min="12" max="40" step="2" value="20"></label>
                             </div>
                             <label>Remarques <input type="text" name="remarques" placeholder="État général..."></label>
-                            <div id="error-branche" style="color: var(--pico-del-color); margin-bottom: 1rem; font-weight: bold;"></div>
+                            <div id="error-branche" class="error-box"></div>
                             <button type="submit">Enregistrer</button>
                         </form>
                     </details>
@@ -150,21 +149,22 @@
                                     <td>{{ .Puissance }} lbs</td>
                                     <td>{{ .Taille }}</td>
                                     <td>
-                                        <a href="/equipement/edit/riser/{{ .ID }}" role="button" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;" title="Modifier">
-                                            ✏️
-                                        </a>
-                                        <button class="outline contrast"
-                                                style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
-                                                hx-delete="/api/limbs/{{ .ID }}"
-                                                hx-target="closest tr"
-                                                hx-swap="delete"
-                                                hx-confirm="Supprimer cette poignée?">
-                                                🗑️
+                                        <div class="table-actions">
+                                            <a href="/equipement/edit/limb/{{ .ID }}" role="button" class="outline btn-compact" title="Modifier">
+                                                ✏️
+                                            </a>
+                                            <button class="outline contrast btn-compact"
+                                                    hx-delete="/api/limbs/{{ .ID }}"
+                                                    hx-target="closest tr"
+                                                    hx-swap="delete"
+                                                    hx-confirm="Supprimer ces branches?">
+                                                    🗑️
                                             </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 {{ else }}
-                                <tr><td colspan="4" style="text-align: center;">Aucune branche en stock.</td></tr>
+                                <tr><td colspan="5" class="text-center">Aucune branche en stock.</td></tr>
                                 {{ end }}
                             </tbody>
                         </table>
@@ -174,27 +174,6 @@
         </section>
     </main>
 
-    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js"></script>
-    <script>
-        document.body.addEventListener('htmx:responseError', function(evt) {
-            try {
-                const response = JSON.parse(evt.detail.xhr.response);
-                if (response.error) {
-                    // On cherche si l'erreur vient du formulaire poignée ou branche
-                    const form = evt.detail.elt;
-                    const errorDiv = form.querySelector('[id^="error-"]');
-                    if(errorDiv) errorDiv.innerText = "❌ " + response.error;
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        });
-
-        document.body.addEventListener('htmx:beforeRequest', function(evt) {
-            const form = evt.detail.elt;
-            const errorDiv = form.querySelector('[id^="error-"]');
-            if(errorDiv) errorDiv.innerText = "";
-        });
-    </script>
+    {{ template "footer" . }}
 </body>
 </html>

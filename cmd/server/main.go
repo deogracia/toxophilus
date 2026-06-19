@@ -65,11 +65,13 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 		templ := template.Must(template.ParseFS(os.DirFS("templates"), "*.html", "partials/*.html"))
 		r.SetHTMLTemplate(templ)
 		r.StaticFile("/favicon.ico", "static/favicon.ico")
+		r.Static("/static", "static")
 	} else {
 		fmt.Println("📦 Mode PRODUCTION (lecture depuis l'exécutable)")
 		templ := template.Must(template.ParseFS(templates.TemplateFS, "*.html", "partials/*.html"))
 		r.SetHTMLTemplate(templ)
 		r.StaticFileFS("/favicon.ico", "favicon.ico", http.FS(static.StaticFS))
+		r.StaticFS("/static", http.FS(static.StaticFS))
 	}
 
 	// 1. Le Gatekeeper : Force le setup si la base est vierge
