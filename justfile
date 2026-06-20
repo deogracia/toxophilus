@@ -42,7 +42,7 @@ _ensure-dir target_dir:
 [group('Building')]
 build: (_ensure-dir "dist") generate-favicon
 	@echo "🔨 Compilation des exécutables..."
-	go build -o ./dist/{{nom_application}}-create-user{{extension}} ./cmd/create_user/main.go
+	go build -o ./dist/{{nom_application}}-cli{{extension}} ./cmd/toxophilus_cli/main.go
 	go build -o ./dist/{{exe_name}} ./cmd/server/main.go
 	@cp config-example.toml ./dist/config-example.toml
 
@@ -54,7 +54,12 @@ run:
 # Crée un administrateur (usage: just create-admin email mdp)
 [group('On my workstation')]
 create-admin email password:
-	go run ./cmd/create_user/main.go {{email}} {{password}}
+	go run ./cmd/toxophilus_cli/main.go create-admin {{email}} {{password}}
+
+# Injecte des données factices de démonstration
+[group('On my workstation')]
+seed:
+	go run ./cmd/toxophilus_cli/main.go seed
 
 # Lance les tests puis l'application sans la compiler
 [group('On my workstation')]
