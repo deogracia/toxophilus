@@ -38,7 +38,7 @@ build_all:
   script:
     - sudo apt-get update && sudo apt-get install -y imagemagick tree zip
     - tree .
-    - magick -background none ".\images\sources" -define icon:auto-resize="16,32,48,128,256" ".\static\favicon.ico"
+    - convert -background none "./images/sources/Icone_inkscape.svg" -define icon:auto-resize="16,32,48,128,256" "./static/favicon.ico"
     - mkdir -p dist
     # Syntaxe Bash pour définir l'extension
     - EXT=$([ "$GOOS" == "windows" ] && echo ".exe" || echo "")
