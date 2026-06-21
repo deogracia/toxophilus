@@ -1,0 +1,164 @@
+{
+  "members": [
+    {
+      "code_adherent": "FR-2026-001",
+      "nom": "Dupont",
+      "prenom": "Jean",
+      "date_naissance": "1985-03-15T00:00:00Z",
+      "email": "jean.dupont@email.com",
+      "telephone": "0612345678",
+      "numero_rue": "12",
+      "rue": "rue de la Paix",
+      "ville": "Paris",
+      "code_postal": "75002"
+    },
+    {
+      "code_adherent": "FR-2026-002",
+      "nom": "Martin",
+      "prenom": "Marie",
+      "date_naissance": "1992-07-22T00:00:00Z",
+      "email": "marie.martin@email.com",
+      "telephone": "0687654321",
+      "numero_rue": "5",
+      "rue": "avenue de la République",
+      "ville": "Lyon",
+      "code_postal": "69011"
+    },
+    {
+      "code_adherent": "FR-2026-003",
+      "nom": "Bernard",
+      "prenom": "Pierre",
+      "date_naissance": "2005-11-10T00:00:00Z",
+      "email": "pierre.bernard@email.com",
+      "telephone": "0711223344",
+      "numero_rue": "18",
+      "rue": "rue des Écoles",
+      "ville": "Marseille",
+      "code_postal": "13005"
+    },
+    {
+      "code_adherent": "FR-2026-004",
+      "nom": "Dubois",
+      "prenom": "Sophie",
+      "date_naissance": "1998-05-05T00:00:00Z",
+      "email": "sophie.dubois@email.com",
+      "telephone": "0655667788",
+      "numero_rue": "3",
+      "rue": "villa des Lilas",
+      "ville": "Toulouse",
+      "code_postal": "31000"
+    }
+  ],
+  "risers": [
+    {
+      "numero_serie": "P-HOYT-2026",
+      "marque": "Hoyt",
+      "modele": "Formula XD",
+      "taille": "25 pouces",
+      "lateralite": "Droitier",
+      "couleur": "Rouge",
+      "disponibilite": true,
+      "annee_achat": 2026,
+      "prix": 850.0
+    },
+    {
+      "numero_serie": "P-WNS-2026",
+      "marque": "WNS",
+      "modele": "Motive FX",
+      "taille": "25 pouces",
+      "lateralite": "Gaucher",
+      "couleur": "Bleu",
+      "disponibilite": true,
+      "annee_achat": 2025,
+      "prix": 189.0
+    },
+    {
+      "numero_serie": "P-KINETIC-2026",
+      "marque": "Kinetic",
+      "modele": "Vygo",
+      "taille": "25 pouces",
+      "lateralite": "Droitier",
+      "couleur": "Noir",
+      "disponibilite": true,
+      "annee_achat": 2026,
+      "prix": 149.0
+    }
+  ],
+  "limbs": [
+    {
+      "numero_serie": "B-UUKHA-2026",
+      "marque": "Uukha",
+      "modele": "Sx50",
+      "taille": "68 pouces",
+      "puissance": "28#",
+      "disponibilite": true,
+      "commentaire": "Très bon état",
+      "annee_achat": 2026,
+      "prix": 380.0
+    },
+    {
+      "numero_serie": "B-SANLIDA-2026",
+      "marque": "Sanlida",
+      "modele": "Miracle X9",
+      "taille": "66 pouces",
+      "puissance": "24#",
+      "disponibilite": true,
+      "commentaire": "Initiation",
+      "annee_achat": 2025,
+      "prix": 99.0
+    },
+    {
+      "numero_serie": "B-WNS-2026",
+      "marque": "WNS",
+      "modele": "Explore W1",
+      "taille": "68 pouces",
+      "puissance": "20#",
+      "disponibilite": true,
+      "commentaire": "Idéal débutant",
+      "annee_achat": 2026,
+      "prix": 85.0
+    }
+  ],
+  "contracts": [
+    {
+      "member_code": "FR-2026-001",
+      "riser_serial": "P-HOYT-2026",
+      "limb_serial": "B-UUKHA-2026",
+      "statut": "Actif",
+      "offset_debut_jours": 0,
+      "offset_fin_mois": 6,
+      "accessoires": "Viseur, Repose-flèche, Berger Button",
+      "commentaire": "Première main, matériel haut de gamme loué pour la saison.",
+      "montant_location": 150.0,
+      "montant_caution": 300.0,
+      "etat_paiement": "Payé",
+      "mode_paiement": "Carte Bancaire",
+      "recu_signe": true
+    },
+    {
+      "member_code": "FR-2026-002",
+      "riser_serial": "P-WNS-2026",
+      "limb_serial": "B-SANLIDA-2026",
+      "statut": "Terminé",
+      "offset_debut_jours": -180,
+      "offset_fin_jours": -1,
+      "accessoires": "Fausse corde",
+      "commentaire": "Matériel rendu complet et en bon état.",
+      "montant_location": 120.0,
+      "montant_caution": 250.0,
+      "etat_paiement": "Payé",
+      "mode_paiement": "Chèque",
+      "recu_signe": true
+    }
+  ],
+  "settings": {
+    "pdf_club_name": "Club de Tir à l'Arc - Toxophilus",
+    "pdf_club_subtitle": "La flèche de Sénart",
+    "club_address": "44 rue Charles Mory, 91210 DRAVEIL",
+    "club_website": "https://toxophilus.fr",
+    "pdf_footer_ligne1": "Association Loi 1901 - Siret: 123 456 789 00012 - Affilié FFTA N°123456",
+    "pdf_footer_ligne2": "Siège social: 44 rue Charles Mory, 91210 DRAVEIL - Contact: contact@toxophilus.fr",
+    "pdf_show_contact_footer": "true",
+    "pdf_clauses_location": "Le locataire s'engage à prendre soin du matériel confié. En cas de perte ou de détérioration du matériel, les frais de réparation ou de remplacement seront à sa charge."
+  }
+}

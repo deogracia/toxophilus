@@ -1,102 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
 {{ template "head" . }}
 <body>
     <main class="container">
         {{ template "nav" . }}
-
-        <div class="grid"  style="align-items: center; margin-bottom: 1.5rem;">
-            <div>
-                <h2 style="margin-bottom: 0;">📄 Contrat de location #{{ .Contract.ID }}</h2>
-            </div>
-
-            <div style="text-align: right;">
-                <a href="/contracts" class="secondary" role="button">Retour aux contrats</a>
-                <a href="/contracts/{{ .Contract.ID }}/pdf" class="contrast" role="button">🖨️ Générer le PDF</a>
-            </div>
-        </div>
-
-        <article>
-            <form hx-put="/contracts/{{ .Contract.ID }}/status" hx-trigger="change" hx-swap="none" style="margin-top: 1rem;">
-                <div class="grid">
-                    <label>
-                        <small>Statut du contrat</small>
-                        <select name="statut" style="margin-bottom: 0;">
-                            <option value="Actif" {{ if eq .Contract.Statut "Actif" }}selected{{ end }}>🟢 Actif</option>
-                            <option value="Expiré" {{ if eq .Contract.Statut "Expiré" }}selected{{ end }}>⚠️ Expiré (Non rendu)</option>
-                            <option value="Terminé" {{ if eq .Contract.Statut "Terminé" }}selected{{ end }}>📦 Terminé (Restitué)</option>
-                            <option value="Annulé" {{ if eq .Contract.Statut "Annulé" }}selected{{ end }}>❌ Annulé</option>
-                        </select>
-                    </label>
-
-                    <label>
-                        <small>État du paiement</small>
-                        <select name="etat_paiement" style="margin-bottom: 0;">
-                            <option value="En attente" {{ if eq .Contract.EtatPaiement "En attente" }}selected{{ end }}>⏳ En attente</option>
-                            <option value="Payé" {{ if eq .Contract.EtatPaiement "Payé" }}selected{{ end }}>✅ Payé</option>
-                        </select>
-                    </label>
-                    <label>
-                        <small>Mode de paiement</small>
-                        <select name="mode_paiement" style="margin-bottom: 0;">
-                            <option value="" {{ if eq .Contract.ModePaiement "" }}selected{{ end }}>Non renseigné</option>
-                            <option value="Chèque" {{ if eq .Contract.ModePaiement "Chèque" }}selected{{ end }}>Chèque</option>
-                            <option value="Espèces" {{ if eq .Contract.ModePaiement "Espèces" }}selected{{ end }}>Espèces</option>
-                            <option value="Virement" {{ if eq .Contract.ModePaiement "Virement" }}selected{{ end }}>Virement</option>
-                            <option value="CB" {{ if eq .Contract.ModePaiement "CB" }}selected{{ end }}>Carte Bancaire</option>
-                            <option value="Autre" {{ if eq .Contract.ModePaiement "Autre" }}selected{{ end }}>Autre...</option>
-                        </select>
-                    </label>
-                    <label>
-                        <small>Document</small>
-                        <select name="recu_signe" style="margin-bottom: 0;">
-                            <option value="false" {{ if not .Contract.RecuSigne }}selected{{ end }}>📝 À signer</option>
-                            <option value="true" {{ if .Contract.RecuSigne }}selected{{ end }}>✅ Signé et reçu</option>
-                        </select>
-                    </label>
+        <hr>
+        <section>
+            <div class="page-header align-center">
+                <div>
+                    <h2>📄 Contrat de location #{{ .Contract.ID }}</h2>
                 </div>
-            </form>
-        </article>
 
-        <div class="grid">
-            <article>
-                <header><strong>👤 Archer (Locataire)</strong></header>
-                <p><strong>Nom :</strong> {{ .Contract.Member.Nom }} {{ .Contract.Member.Prenom }}</p>
-                <p><strong>N° Licence :</strong> {{ .Contract.Member.CodeAdherent }}</p>
-                <p><strong>Email :</strong> <a href="mailto:{{ .Contract.Member.Email }}">{{ .Contract.Member.Email }}</a></p>
-            </article>
+                <div>
+                    <a href="/contracts" class="secondary" role="button">Retour aux contrats</a>
+                    <a href="/contracts/{{ .Contract.ID }}/pdf" class="contrast" role="button">🖨️ Générer le PDF</a>
+                </div>
+            </div>
 
             <article>
-                <header><strong>📅 Période & Règlement</strong></header>
-                <p><strong>Du :</strong> {{ .Contract.DateDebut.Format "02/01/2006" }} <br>
-                   <strong>Au :</strong> {{ .Contract.DateFin.Format "02/01/2006" }}</p>
-                <p><strong>Montant Location :</strong> {{ .Contract.MontantLocation }} €</p>
-                <p><strong>Montant Caution :</strong> {{ .Contract.MontantCaution }} €</p>
+                <form hx-put="/contracts/{{ .Contract.ID }}/status" hx-trigger="change" hx-swap="none">
+                    <div class="grid">
+                        <label>
+                            <small>Statut du contrat</small>
+                            <select name="statut" class="m-0">
+                                <option value="Actif" {{ if eq .Contract.Statut "Actif" }}selected{{ end }}>🟢 Actif</option>
+                                <option value="Expiré" {{ if eq .Contract.Statut "Expiré" }}selected{{ end }}>⚠️ Expiré (Non rendu)</option>
+                                <option value="Terminé" {{ if eq .Contract.Statut "Terminé" }}selected{{ end }}>📦 Terminé (Restitué)</option>
+                                <option value="Annulé" {{ if eq .Contract.Statut "Annulé" }}selected{{ end }}>❌ Annulé</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            <small>État du paiement</small>
+                            <select name="etat_paiement" class="m-0">
+                                <option value="En attente" {{ if eq .Contract.EtatPaiement "En attente" }}selected{{ end }}>⏳ En attente</option>
+                                <option value="Payé" {{ if eq .Contract.EtatPaiement "Payé" }}selected{{ end }}>✅ Payé</option>
+                            </select>
+                        </label>
+                        <label>
+                            <small>Mode de paiement</small>
+                            <select name="mode_paiement" class="m-0">
+                                <option value="" {{ if eq .Contract.ModePaiement "" }}selected{{ end }}>Non renseigné</option>
+                                <option value="Chèque" {{ if eq .Contract.ModePaiement "Chèque" }}selected{{ end }}>Chèque</option>
+                                <option value="Espèces" {{ if eq .Contract.ModePaiement "Espèces" }}selected{{ end }}>Espèces</option>
+                                <option value="Virement" {{ if eq .Contract.ModePaiement "Virement" }}selected{{ end }}>Virement</option>
+                                <option value="CB" {{ if eq .Contract.ModePaiement "CB" }}selected{{ end }}>Carte Bancaire</option>
+                                <option value="Autre" {{ if eq .Contract.ModePaiement "Autre" }}selected{{ end }}>Autre...</option>
+                            </select>
+                        </label>
+                        <label>
+                            <small>Document</small>
+                            <select name="recu_signe" class="m-0">
+                                <option value="false" {{ if not .Contract.RecuSigne }}selected{{ end }}>📝 À signer</option>
+                                <option value="true" {{ if .Contract.RecuSigne }}selected{{ end }}>✅ Signé et reçu</option>
+                            </select>
+                        </label>
+                    </div>
+                </form>
             </article>
-        </div>
 
-        <article>
-            <header><strong>🏹 Matériel loué</strong></header>
+            <div class="grid">
+                <article>
+                    <header><strong>👤 Archer (Locataire)</strong></header>
+                    <p><strong>Nom :</strong> {{ .Contract.Member.Nom }} {{ .Contract.Member.Prenom }}</p>
+                    <p><strong>N° Licence :</strong> {{ .Contract.Member.CodeAdherent }}</p>
+                    <p><strong>Email :</strong> <a href="mailto:{{ .Contract.Member.Email }}">{{ .Contract.Member.Email }}</a></p>
+                </article>
 
-            {{ if .Contract.Riser.NumeroSerie }}
-                <p><strong>Poignée :</strong> {{ .Contract.Riser.Marque }} {{ .Contract.Riser.Modele }} (N° {{ .Contract.Riser.NumeroSerie }})</p>
-            {{ end }}
+                <article>
+                    <header><strong>📅 Période & Règlement</strong></header>
+                    <p><strong>Du :</strong> {{ .Contract.DateDebut.Format "02/01/2006" }} <br>
+                       <strong>Au :</strong> {{ .Contract.DateFin.Format "02/01/2006" }}</p>
+                    <p><strong>Montant Location :</strong> {{ .Contract.MontantLocation }} €</p>
+                    <p><strong>Montant Caution :</strong> {{ .Contract.MontantCaution }} €</p>
+                </article>
+            </div>
 
-            {{ if .Contract.Limb.NumeroSerie }}
-                <p><strong>Branches :</strong> {{ .Contract.Limb.Marque }} {{ .Contract.Limb.Modele }} - {{ .Contract.Limb.Taille }} / {{ .Contract.Limb.Puissance }} (N° {{ .Contract.Limb.NumeroSerie }})</p>
-            {{ end }}
+            <article>
+                <header><strong>🏹 Matériel loué</strong></header>
 
-            {{ if and (not .Contract.Riser.NumeroSerie) (not .Contract.Limb.NumeroSerie) }}
-                <p><small style="color: var(--pico-muted-color);">Aucun arc spécifique. Accessoires uniquement.</small></p>
-            {{ end }}
+                {{ if .Contract.Riser.NumeroSerie }}
+                    <p><strong>Poignée :</strong> {{ .Contract.Riser.Marque }} {{ .Contract.Riser.Modele }} (N° {{ .Contract.Riser.NumeroSerie }})</p>
+                {{ end }}
 
-            {{ if .Contract.Accessoires }}
-                <p><strong>Accessoires :</strong> {{ .Contract.Accessoires }}</p>
-            {{ end }}
+                {{ if .Contract.Limb.NumeroSerie }}
+                    <p><strong>Branches :</strong> {{ .Contract.Limb.Marque }} {{ .Contract.Limb.Modele }} - {{ .Contract.Limb.Taille }} / {{ .Contract.Limb.Puissance }} (N° {{ .Contract.Limb.NumeroSerie }})</p>
+                {{ end }}
 
-            {{ if .Contract.Commentaire }}
-                <p><strong>Commentaires :</strong> {{ .Contract.Commentaire }}</p>
-            {{ end }}
-        </article>
+                {{ if and (not .Contract.Riser.NumeroSerie) (not .Contract.Limb.NumeroSerie) }}
+                    <p><small class="secondary">Aucun arc spécifique. Accessoires uniquement.</small></p>
+                {{ end }}
 
+                {{ if .Contract.Accessoires }}
+                    <p><strong>Accessoires :</strong> {{ .Contract.Accessoires }}</p>
+                {{ end }}
+
+                {{ if .Contract.Commentaire }}
+                    <p><strong>Commentaires :</strong> {{ .Contract.Commentaire }}</p>
+                {{ end }}
+            </article>
+        </section>
     </main>
+
+    {{ template "footer" . }}
 </body>
 </html>

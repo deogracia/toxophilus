@@ -1,24 +1,22 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="light">
+<html lang="fr">
 {{ template "head" . }}
 <body>
-    <header class="container">
-        {{ template "nav" . }}
-    </header>
-
     <main class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <div style="margin: 0;">
-                <h2 style="margin-bottom: 0.5rem;">📄 Contrats de Location</h2>
-                <p style="margin-bottom: 0; color: var(--pico-muted-color);">Gestion des locations de matériel aux archers.</p>
-            </div>
-            <a href="/contracts/new" role="button" style="margin-bottom: 0;">
-                ➕ Nouveau Contrat
-            </a>
-        </div>
-
+        {{ template "nav" . }}
+        <hr>
         <section>
-            <div class="overflow-auto">
+            <div class="page-header">
+                <div>
+                    <h2>📄 Contrats de Location</h2>
+                    <p class="secondary">Gestion des locations de matériel aux archers.</p>
+                </div>
+                <a href="/contracts/new" role="button">
+                    ➕ Nouveau Contrat
+                </a>
+            </div>
+
+            <figure>
                 <table class="striped">
                     <thead>
                         <tr>
@@ -34,15 +32,6 @@
                     <tbody>
                         {{ if .Contracts }}
                             {{ range .Contracts }}
-                            <pre style="font-size: 0.75rem; background: #2d3748; color: #a0aec0; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
-                            📊 DEBUG CONTRAT EN DIRECT :
-                            - Adresse pointeur RiserID : {{ .RiserID }}
-                            - Adresse pointeur LimbID  : {{ .LimbID }}
-                            - Valeur ID dans la structure Riser : {{ .Riser.ID }}
-                            - Numéro de série Riser : "{{ .Riser.NumeroSerie }}"
-                            - Contenu brut de tout l'objet Contrat :
-                            {{ printf "%+v" . }}
-                            </pre>
                             <tr>
                                 <td><strong>{{ .Member.Prenom }} {{ .Member.Nom }}</strong></td>
                                 <td>Du {{ .DateDebut.Format "02/01/2006" }}<br>Au {{ .DateFin.Format "02/01/2006" }}</td>
@@ -60,7 +49,7 @@
                                     {{ end }}
 
                                     {{ if and (not .Riser.NumeroSerie) (not .Limb.NumeroSerie) }}
-                                        <small style="color: var(--pico-muted-color);">Aucun arc (Accessoires uniquement)</small>
+                                        <small class="secondary">Aucun arc (Accessoires uniquement)</small>
                                     {{ end }}
                                 </td>
                                 <td>
@@ -80,27 +69,29 @@
                                 </td>
                                 <td>
                                     {{ if .RecuSigne }}
-                                        <span data-tooltip="Contrat signé retourné par l'archer" >✅ Signé</span>
+                                        <span data-tooltip="Contrat signé retourné par l'archer">✅ Signé</span>
                                     {{ else }}
-                                        <span data-tooltip="Contrat en attente de signature" >⏳ Attente signature</span>
+                                        <span data-tooltip="Contrat en attente de signature">⏳ Attente signature</span>
                                     {{ end }}
                                 </td>
                                 <td>
-                                    <a href="/contracts/{{ .ID }}" role="button" class="outline" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">Détails</a>
+                                    <a href="/contracts/{{ .ID }}" role="button" class="outline btn-compact">Détails</a>
                                 </td>
                             </tr>
                             {{ end }}
                         {{ else }}
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 2rem;">
+                                <td colspan="7" class="text-center p-4">
                                     Aucun contrat de location pour le moment.
                                 </td>
                             </tr>
                         {{ end }}
                     </tbody>
                 </table>
-            </div>
+            </figure>
         </section>
     </main>
+
+    {{ template "footer" . }}
 </body>
 </html>

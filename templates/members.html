@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="fr">
-
-{{ template "head" .}}
-
+{{ template "head" . }}
 <body>
     <main class="container">
-
-        {{ template "nav" .}}
-
+        {{ template "nav" . }}
+        <hr>
         <section>
             <h2>Gestion des Archers</h2>
-                <details style="margin-bottom: 2rem;">
+            
+            <details class="mb-4">
                 <summary role="button" class="secondary">➕ Ajouter un nouvel archer</summary>
 
                 <article>
@@ -52,15 +50,17 @@
                             </label>
                         </div>
 
-                        <div id="form-error" style="color: var(--pico-del-color); margin-bottom: 1rem; font-weight: bold;"></div>
+                        <div id="form-error" class="error-box"></div>
 
                         <button type="submit">Enregistrer l'archer</button>
                     </form>
                 </article>
             </details>
-            <p style="text-align: right;">
+            
+            <p class="text-right">
                 <a href="/members/archives" class="secondary">🗃️ Voir les archers supprimés</a>
             </p>
+            
             <figure>
                 <table class="striped">
                     <thead>
@@ -79,53 +79,33 @@
                             <td>{{ .Nom }}</td>
                             <td>{{ .Prenom }}</td>
                             <td>{{ .Email }}</td>
-                            <td style="display: flex; gap: 0.5rem;">
-                                <a href="/members/edit/{{ .ID }}"
-                                   role="button"
-                                   class="outline"
-                                   style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;">
-                                   Modifier
-                                </a>
+                            <td>
+                                <div class="table-actions">
+                                    <a href="/members/edit/{{ .ID }}"
+                                       role="button"
+                                       class="outline btn-compact">
+                                       Modifier
+                                    </a>
 
-                                <button class="outline secondary"
-                                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-bottom: 0;"
-                                        hx-delete="/api/members/{{ .ID }}"
-                                        hx-target="closest tr"
-                                        hx-swap="delete"
-                                        hx-confirm="Confirmer la suppression ?">
-                                    Supprimer
-                                </button>
+                                    <button class="outline secondary btn-compact"
+                                            hx-delete="/api/members/{{ .ID }}"
+                                            hx-target="closest tr"
+                                            hx-swap="delete"
+                                            hx-confirm="Confirmer la suppression ?">
+                                        Supprimer
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         {{ else }}
-                        <tr><td colspan="5" style="text-align: center;">Aucun membre.</td></tr>
+                        <tr><td colspan="5" class="text-center">Aucun membre.</td></tr>
                         {{ end }}
                     </tbody>
                 </table>
             </figure>
         </section>
     </main>
-    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js"></script>
 
-    <script>
-        // 1. Quand HTMX signale une erreur (ex: 409 Conflict)
-        document.body.addEventListener('htmx:responseError', function(evt) {
-            try {
-                // On transforme la réponse texte en objet JSON
-                const response = JSON.parse(evt.detail.xhr.response);
-                if (response.error) {
-                    // On injecte le message d'erreur de ton code Go dans la page
-                    document.getElementById('form-error').innerText = "❌ " + response.error;
-                }
-            } catch (e) {
-                document.getElementById('form-error').innerText = "❌ Une erreur de communication est survenue.";
-            }
-        });
-
-        // 2. Quand on relance une requête, on nettoie le message d'erreur précédent
-        document.body.addEventListener('htmx:beforeRequest', function() {
-            document.getElementById('form-error').innerText = "";
-        });
-    </script>
+    {{ template "footer" . }}
 </body>
 </html>

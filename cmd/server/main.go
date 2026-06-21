@@ -36,6 +36,20 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 	}
 	r := gin.New()
 
+	// On initialise nos dépôts et handlers avec injection de dépendances
+	memberRepo := database.NewGormMemberRepository(database.DB)
+	memberHandler := handlers.NewMemberHandler(memberRepo)
+
+	riserRepo := database.NewGormRiserRepository(database.DB)
+	limbRepo := database.NewGormLimbRepository(database.DB)
+	equipementHandler := handlers.NewEquipementHandler(riserRepo, limbRepo)
+
+	settingRepo := database.NewGormSettingRepository(database.DB)
+	settingHandler := handlers.NewSettingHandler(settingRepo)
+
+	contractRepo := database.NewGormContractRepository(database.DB)
+	contractHandler := handlers.NewContractHandler(contractRepo, memberRepo, riserRepo, limbRepo, settingRepo)
+
 	// On attache NOTRE logger, ainsi que le module Recovery (qui évite que le serveur crash en cas de panic)
 	r.Use(middleware.SlogLogger(), gin.Recovery())
 
@@ -51,11 +65,13 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 		templ := template.Must(template.ParseFS(os.DirFS("templates"), "*.html", "partials/*.html"))
 		r.SetHTMLTemplate(templ)
 		r.StaticFile("/favicon.ico", "static/favicon.ico")
+		r.Static("/static", "static")
 	} else {
 		fmt.Println("📦 Mode PRODUCTION (lecture depuis l'exécutable)")
 		templ := template.Must(template.ParseFS(templates.TemplateFS, "*.html", "partials/*.html"))
 		r.SetHTMLTemplate(templ)
 		r.StaticFileFS("/favicon.ico", "favicon.ico", http.FS(static.StaticFS))
+		r.StaticFS("/static", http.FS(static.StaticFS))
 	}
 
 	// 1. Le Gatekeeper : Force le setup si la base est vierge
@@ -77,30 +93,30 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 		web.GET("/", handlers.GetDashboardPage)
 
 		// List des membres
-		web.GET("/members", handlers.GetMembersPage)
+		web.GET("/members", memberHandler.GetMembersPage)
 
 		// Page pour modifier un membre
-		web.GET("/members/edit/:id", handlers.GetMemberEditPage)
+		web.GET("/members/edit/:id", memberHandler.GetMemberEditPage)
 
 		// Page des archives (Membres supprimés)
-		web.GET("/members/archives", handlers.GetMemberArchivesPage)
+		web.GET("/members/archives", memberHandler.GetMemberArchivesPage)
 
 		// les routes spécifiques aux matériel
-		web.GET("/equipement", handlers.GetEquipementPage)
-		web.GET("/equipement/edit/riser/:id", handlers.GetEditRiserPage)
-		web.GET("/equipement/edit/limb/:id", handlers.GetEditLimbPage)
-		web.GET("/equipement/archives", handlers.GetEquipementArchivesPage)
+		web.GET("/equipement", equipementHandler.GetEquipementPage)
+		web.GET("/equipement/edit/riser/:id", equipementHandler.GetEditRiserPage)
+		web.GET("/equipement/edit/limb/:id", equipementHandler.GetEditLimbPage)
+		web.GET("/equipement/archives", equipementHandler.GetEquipementArchivesPage)
 
 		// les routes pour les contrats
-		web.GET("/contracts", handlers.GetContractsPage)
-		web.GET("/contracts/new", handlers.GetNewContractPage)
-		web.GET("/contracts/:id", handlers.GetContractDetailsPage)
-		web.GET("/contracts/:id/pdf", handlers.DownloadContractPDF)
-		web.PUT("/contracts/:id/status", handlers.UpdateContractStatus)
+		web.GET("/contracts", contractHandler.GetContractsPage)
+		web.GET("/contracts/new", contractHandler.GetNewContractPage)
+		web.GET("/contracts/:id", contractHandler.GetContractDetailsPage)
+		web.GET("/contracts/:id/pdf", contractHandler.DownloadContractPDF)
+		web.PUT("/contracts/:id/status", contractHandler.UpdateContractStatus)
 
 		// les routes pour les settings
-		web.GET("/settings", handlers.GetSettingsPage)
-		web.POST("/settings/save", handlers.ProcessSettingsSave)
+		web.GET("/settings", settingHandler.GetSettingsPage)
+		web.POST("/settings/save", settingHandler.ProcessSettingsSave)
 
 	}
 
@@ -141,33 +157,33 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 	api.Use(middleware.AuthRequired())
 	{
 		// Gestion des membres
-		api.GET("/members", handlers.ListMembers)
-		api.POST("/members", handlers.CreateMember)
-		api.PUT("/members/:id", handlers.UpdateMember)
-		api.DELETE("/members/:id", handlers.DeleteMember)
-		api.GET("/members/:id/export", handlers.ExportMemberData)
-		api.DELETE("/members/:id/hard", handlers.HardDeleteMember)
-		api.PUT("/members/:id/reactivate", handlers.ReactivateMember)
+		api.GET("/members", memberHandler.ListMembers)
+		api.POST("/members", memberHandler.CreateMember)
+		api.PUT("/members/:id", memberHandler.UpdateMember)
+		api.DELETE("/members/:id", memberHandler.DeleteMember)
+		api.GET("/members/:id/export", memberHandler.ExportMemberData)
+		api.DELETE("/members/:id/hard", memberHandler.HardDeleteMember)
+		api.PUT("/members/:id/reactivate", memberHandler.ReactivateMember)
 
 		// Gestion équipement
 		//  Poignée
-		api.GET("/risers", handlers.ListRisers)
-		api.POST("/risers", handlers.CreateRiser)
-		api.PUT("/risers/:id", handlers.UpdateRiser)
-		api.DELETE("/risers/:id", handlers.DeleteRiser)
-		api.DELETE("/risers/:id/hard", handlers.HardDeleteRiser)
-		api.PUT("/risers/:id/reactivate", handlers.ReactivateRiser)
+		api.GET("/risers", equipementHandler.ListRisers)
+		api.POST("/risers", equipementHandler.CreateRiser)
+		api.PUT("/risers/:id", equipementHandler.UpdateRiser)
+		api.DELETE("/risers/:id", equipementHandler.DeleteRiser)
+		api.DELETE("/risers/:id/hard", equipementHandler.HardDeleteRiser)
+		api.PUT("/risers/:id/reactivate", equipementHandler.ReactivateRiser)
 
 		// Branches
-		api.GET("/limbs", handlers.ListLimbs)
-		api.POST("/limbs", handlers.CreateLimb)
-		api.PUT("/limbs/:id", handlers.UpdateLimb)
-		api.DELETE("/limbs/:id", handlers.DeleteLimb)
-		api.DELETE("/limbs/:id/hard", handlers.HardDeleteLimb)
-		api.PUT("/limbs/:id/reactivate", handlers.ReactivateLimb)
+		api.GET("/limbs", equipementHandler.ListLimbs)
+		api.POST("/limbs", equipementHandler.CreateLimb)
+		api.PUT("/limbs/:id", equipementHandler.UpdateLimb)
+		api.DELETE("/limbs/:id", equipementHandler.DeleteLimb)
+		api.DELETE("/limbs/:id/hard", equipementHandler.HardDeleteLimb)
+		api.PUT("/limbs/:id/reactivate", equipementHandler.ReactivateLimb)
 
 		// Contrats
-		api.POST("/contracts", handlers.CreateContract)
+		api.POST("/contracts", contractHandler.CreateContract)
 
 	}
 

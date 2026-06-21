@@ -30,6 +30,21 @@ type Member struct {
 	Contracts     []Contract
 }
 
+// MemberRepository définit l'interface de stockage pour les adhérents.
+// Tout moteur de stockage (GORM, SQL brut, mock en mémoire pour tests)
+// doit implémenter ces méthodes.
+type MemberRepository interface {
+	GetAll() ([]Member, error)
+	GetArchived() ([]Member, error)
+	GetByID(id uint) (*Member, error)
+	GetByIDWithUnscoped(id uint) (*Member, error)
+	Create(member *Member) error
+	Update(member *Member) error
+	Delete(member *Member) error
+	Reactivate(id uint) error
+	HardDelete(id uint) error
+}
+
 // Limb représente les branches d'un arc
 type Limb struct {
 	gorm.Model
@@ -42,6 +57,19 @@ type Limb struct {
 	Commentaire   string
 	AnneeAchat    int
 	Prix          float64
+}
+
+// LimbRepository définit l'interface de stockage pour les branches.
+type LimbRepository interface {
+	GetAll() ([]Limb, error)
+	GetArchived() ([]Limb, error)
+	GetByID(id uint) (*Limb, error)
+	GetByIDWithUnscoped(id uint) (*Limb, error)
+	Create(limb *Limb) error
+	Update(limb *Limb) error
+	Delete(limb *Limb) error
+	Reactivate(id uint) error
+	HardDelete(id uint) error
 }
 
 // Riser représente la poignée d'un arc
@@ -58,11 +86,32 @@ type Riser struct {
 	Prix          float64
 }
 
+// RiserRepository définit l'interface de stockage pour les poignées.
+type RiserRepository interface {
+	GetAll() ([]Riser, error)
+	GetArchived() ([]Riser, error)
+	GetByID(id uint) (*Riser, error)
+	GetByIDWithUnscoped(id uint) (*Riser, error)
+	Create(riser *Riser) error
+	Update(riser *Riser) error
+	Delete(riser *Riser) error
+	Reactivate(id uint) error
+	HardDelete(id uint) error
+}
+
 // Setting représente un parametre de notre application
 type Setting struct {
 	gorm.Model
 	Cle    string `gorm:"uniqueIndex"`
 	Valeur string
+}
+
+// SettingRepository définit l'interface de stockage pour les réglages de l'application.
+type SettingRepository interface {
+	GetAll() ([]Setting, error)
+	GetByKey(key string) (*Setting, error)
+	Save(setting *Setting) error
+	SaveAll(settings map[string]string) error
 }
 
 // Contract représente un contrat liant Member, Limb et riser
@@ -102,4 +151,13 @@ type Contract struct {
 	RecuSigne       bool   `gorm:"default:false" json:"recu_signe"`
 	CheminPDFGenere string `json:"chemin_pdf_genere"` // Contrat vierge issu de l'application
 	CheminPDFSigne  string `json:"chemin_pdf_signe"`  // Contrat signé retourné (scan/photo)
+}
+
+// ContractRepository définit l'interface de stockage pour les contrats de location.
+type ContractRepository interface {
+	GetAll() ([]Contract, error)
+	GetByID(id uint) (*Contract, error)
+	Create(contract *Contract) error
+	Update(contract *Contract) error
+	Delete(contract *Contract) error
 }

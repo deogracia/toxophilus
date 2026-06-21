@@ -16,28 +16,32 @@ import (
 	"gorm.io/gorm"
 )
 
-func setupEquipmentTestDB() *gin.Engine {
+func setupEquipmentTestDB() (*gin.Engine, *EquipementHandler) {
 	gin.SetMode(gin.TestMode)
 	db, _ := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	database.DB = db
 	database.DB.AutoMigrate(&models.Riser{}, &models.Limb{})
 
+	riserRepo := database.NewGormRiserRepository(db)
+	limbRepo := database.NewGormLimbRepository(db)
+	h := NewEquipementHandler(riserRepo, limbRepo)
+
 	r := gin.New()
-	r.POST("/risers", CreateRiser)
-	r.GET("/risers", ListRisers)
-	r.PUT("/risers/:id", UpdateRiser)
-	r.DELETE("/risers/:id", DeleteRiser)
+	r.POST("/risers", h.CreateRiser)
+	r.GET("/risers", h.ListRisers)
+	r.PUT("/risers/:id", h.UpdateRiser)
+	r.DELETE("/risers/:id", h.DeleteRiser)
 
-	r.POST("/limbs", CreateLimb)
-	r.GET("/limbs", ListLimbs)
-	r.PUT("/limbs/:id", UpdateLimb)
-	r.DELETE("/limbs/:id", DeleteLimb)
+	r.POST("/limbs", h.CreateLimb)
+	r.GET("/limbs", h.ListLimbs)
+	r.PUT("/limbs/:id", h.UpdateLimb)
+	r.DELETE("/limbs/:id", h.DeleteLimb)
 
-	return r
+	return r, h
 }
 
 func TestRiserCRUD(t *testing.T) {
-	r := setupEquipmentTestDB()
+	r, _ := setupEquipmentTestDB()
 
 	// 1. Create
 	t.Run("Create Riser", func(t *testing.T) {
@@ -101,7 +105,7 @@ func TestRiserCRUD(t *testing.T) {
 }
 
 func TestLimbCRUD(t *testing.T) {
-	r := setupEquipmentTestDB()
+	r, _ := setupEquipmentTestDB()
 
 	// 1. Create
 	t.Run("Create Limb", func(t *testing.T) {
@@ -165,7 +169,7 @@ func TestLimbCRUD(t *testing.T) {
 }
 
 func TestGetEditRiserPage(t *testing.T) {
-	r := setupEquipmentTestDB()
+	r, h := setupEquipmentTestDB()
 
 	// Chargement des templates pour que c.HTML fonctionne
 	// (Le chemin correspond à l'arborescence depuis le dossier handlers)
@@ -173,7 +177,7 @@ func TestGetEditRiserPage(t *testing.T) {
 	r.LoadHTMLGlob("../../templates/*.html")
 
 	// Ajout de la route à tester
-	r.GET("/equipement/edit/riser/:id", GetEditRiserPage)
+	r.GET("/equipement/edit/riser/:id", h.GetEditRiserPage)
 
 	// Création d'une poignée directement en base
 	riser := models.Riser{
@@ -207,12 +211,12 @@ func TestGetEditRiserPage(t *testing.T) {
 }
 
 func TestGetEditLimbPage(t *testing.T) {
-	r := setupEquipmentTestDB()
+	r, h := setupEquipmentTestDB()
 
 	r.LoadHTMLGlob("../../templates/partials/*.html")
 	r.LoadHTMLGlob("../../templates/*.html")
 
-	r.GET("/equipement/edit/limb/:id", GetEditLimbPage)
+	r.GET("/equipement/edit/limb/:id", h.GetEditLimbPage)
 
 	// Création de branches directement en base
 	limb := models.Limb{
@@ -243,8 +247,9 @@ func TestGetEditLimbPage(t *testing.T) {
 		}
 	})
 }
+
 func TestEquipementArchives(t *testing.T) {
-	r := setupEquipmentTestDB()
+	r, h := setupEquipmentTestDB()
 
 	// 1. Chargement des templates pour la vue HTML
 	templ := template.Must(template.ParseGlob("../../templates/*.html"))
@@ -252,11 +257,11 @@ func TestEquipementArchives(t *testing.T) {
 	r.SetHTMLTemplate(templ)
 
 	// 2. Déclaration des routes (Poignées ET Branches)
-	r.GET("/equipement/archives", GetEquipementArchivesPage)
-	r.PUT("/api/risers/:id/reactivate", ReactivateRiser)
-	r.DELETE("/api/risers/:id/hard", HardDeleteRiser)
-	r.PUT("/api/limbs/:id/reactivate", ReactivateLimb)
-	r.DELETE("/api/limbs/:id/hard", HardDeleteLimb)
+	r.GET("/equipement/archives", h.GetEquipementArchivesPage)
+	r.PUT("/api/risers/:id/reactivate", h.ReactivateRiser)
+	r.DELETE("/api/risers/:id/hard", h.HardDeleteRiser)
+	r.PUT("/api/limbs/:id/reactivate", h.ReactivateLimb)
+	r.DELETE("/api/limbs/:id/hard", h.HardDeleteLimb)
 
 	// ==========================================
 	// PRÉPARATION DES DONNÉES

@@ -6,10 +6,23 @@ import (
 	"strconv"
 
 	"github.com/deogracia/toxophilus/config"
-	"github.com/deogracia/toxophilus/database"
 	"github.com/deogracia/toxophilus/models"
 	"github.com/gin-gonic/gin"
 )
+
+// EquipementHandler gère les requêtes HTTP pour l'équipement (Risers & Limbs).
+type EquipementHandler struct {
+	riserRepo models.RiserRepository
+	limbRepo  models.LimbRepository
+}
+
+// NewEquipementHandler crée une nouvelle instance de EquipementHandler.
+func NewEquipementHandler(riserRepo models.RiserRepository, limbRepo models.LimbRepository) *EquipementHandler {
+	return &EquipementHandler{
+		riserRepo: riserRepo,
+		limbRepo:  limbRepo,
+	}
+}
 
 // --- REQUÊTES ---
 
@@ -62,7 +75,7 @@ func parseEquipementFields(anneeStr string, prixStr string) (anneeAchat int, pri
 
 // --- POIGNÉES (RISERS) ---
 
-func CreateRiser(c *gin.Context) {
+func (h *EquipementHandler) CreateRiser(c *gin.Context) {
 	var req CreateRiserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Données invalides", "details": err.Error()})
@@ -74,11 +87,10 @@ func CreateRiser(c *gin.Context) {
 		err       error   = nil
 	)
 
-	// Gestion des champs AnneeAchat et prix de la requêtte -> la bdd
-
 	anneeInt, prixFloat, err = parseEquipementFields(req.AnneeAchat, req.Prix)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	riser := models.Riser{
@@ -93,28 +105,33 @@ func CreateRiser(c *gin.Context) {
 		Disponibilite: true, // Par défaut, un matériel neuf est disponible !
 	}
 
-	if err := database.DB.Create(&riser).Error; err != nil {
+	if err := h.riserRepo.Create(&riser); err != nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "Impossible d'ajouter la poignée (Numéro de série déjà existant ?)"})
 		return
 	}
 
-	// On envoie un ordre prioritaire à HTMX pour forcer le changement de page
-	c.Header("HX-Redirect", "/equipement")
-
-	c.JSON(http.StatusCreated, riser)
+	respondWithRedirect(c, "/equipement", riser, http.StatusCreated)
 }
 
-func ListRisers(c *gin.Context) {
-	var risers []models.Riser
-	database.DB.Find(&risers)
+func (h *EquipementHandler) ListRisers(c *gin.Context) {
+	risers, err := h.riserRepo.GetAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la récupération des poignées"})
+		return
+	}
 	c.JSON(http.StatusOK, risers)
 }
 
-func UpdateRiser(c *gin.Context) {
-	id := c.Param("id")
-	var riser models.Riser
+func (h *EquipementHandler) UpdateRiser(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		return
+	}
 
-	if err := database.DB.First(&riser, id).Error; err != nil {
+	riser, err := h.riserRepo.GetByID(uint(id))
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Poignée introuvable"})
 		return
 	}
@@ -128,12 +145,13 @@ func UpdateRiser(c *gin.Context) {
 	var (
 		anneeInt  int     = 0
 		prixFloat float64 = 0.0
-		err       error   = nil
+		errConv   error   = nil
 	)
 
-	anneeInt, prixFloat, err = parseEquipementFields(req.AnneeAchat, req.Prix)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	anneeInt, prixFloat, errConv = parseEquipementFields(req.AnneeAchat, req.Prix)
+	if errConv != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errConv.Error()})
+		return
 	}
 
 	riser.NumeroSerie = req.NumeroSerie
@@ -145,42 +163,47 @@ func UpdateRiser(c *gin.Context) {
 	riser.AnneeAchat = anneeInt
 	riser.Prix = prixFloat
 
-	database.DB.Save(&riser)
+	if err := h.riserRepo.Update(riser); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la mise à jour"})
+		return
+	}
 
-	// On envoie un ordre prioritaire à HTMX pour forcer le changement de page
-	c.Header("HX-Redirect", "/equipement")
-	c.JSON(http.StatusOK, riser)
+	respondWithRedirect(c, "/equipement", riser, http.StatusOK)
 }
 
-func DeleteRiser(c *gin.Context) {
-	id := c.Param("id")
-	var riser models.Riser
+func (h *EquipementHandler) DeleteRiser(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		return
+	}
 
-	if err := database.DB.First(&riser, id).Error; err != nil {
+	riser, err := h.riserRepo.GetByID(uint(id))
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Poignée introuvable"})
 		return
 	}
 
-	database.DB.Delete(&riser)
-
-	// 1. Si la requête vient de l'interface web (HTMX)
-	if c.GetHeader("HX-Request") == "true" {
-		// On renvoie du vide pour que la ligne du tableau s'évapore proprement
-		c.String(http.StatusOK, "")
+	if err := h.riserRepo.Delete(riser); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la suppression"})
 		return
 	}
 
-	// 2. Si la requête vient d'ailleurs (Postman, future application mobile, etc.)
-	// On renvoie un vrai message JSON clair pour l'API
-	c.JSON(http.StatusOK, gin.H{"message": "Poignée supprimée du catalogue"})
+	respondWithDelete(c, "Poignée supprimée du catalogue")
 }
 
 // GetEditRiserPage affiche le formulaire de modification d'une poignée
-func GetEditRiserPage(c *gin.Context) {
-	id := c.Param("id")
-	var riser models.Riser
-	if err := database.DB.First(&riser, id).Error; err != nil {
-		// Tu peux créer un error.html plus tard, ou rediriger
+func (h *EquipementHandler) GetEditRiserPage(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "index.html", gin.H{"error": "ID invalide"})
+		return
+	}
+
+	riser, err := h.riserRepo.GetByID(uint(id))
+	if err != nil {
 		c.HTML(http.StatusNotFound, "index.html", gin.H{"error": "Poignée introuvable"})
 		return
 	}
@@ -194,31 +217,40 @@ func GetEditRiserPage(c *gin.Context) {
 }
 
 // ReactivateRiser annule le soft-delete d'une poignée
-func ReactivateRiser(c *gin.Context) {
-	id := c.Param("id")
-	// On remet le champ deleted_at à NULL pour restaurer l'objet
-	if err := database.DB.Unscoped().Model(&models.Riser{}).Where("id = ?", id).Update("deleted_at", nil).Error; err != nil {
+func (h *EquipementHandler) ReactivateRiser(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.String(http.StatusBadRequest, "ID invalide")
+		return
+	}
+
+	if err := h.riserRepo.Reactivate(uint(id)); err != nil {
 		c.String(http.StatusInternalServerError, "Erreur lors de la restauration")
 		return
 	}
-	// On renvoie un statut 200 (OK) vide. HTMX va remplacer la ligne du tableau (tr) par ce vide (donc l'effacer).
-	c.Status(http.StatusOK)
+	respondWithReactivate(c, "Poignée restaurée avec succès")
 }
 
 // HardDeleteRiser supprime définitivement la poignée de la base
-func HardDeleteRiser(c *gin.Context) {
-	id := c.Param("id")
-	// Unscoped().Delete() effectue un vrai DELETE SQL
-	if err := database.DB.Unscoped().Delete(&models.Riser{}, id).Error; err != nil {
+func (h *EquipementHandler) HardDeleteRiser(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.String(http.StatusBadRequest, "ID invalide")
+		return
+	}
+
+	if err := h.riserRepo.HardDelete(uint(id)); err != nil {
 		c.String(http.StatusInternalServerError, "Erreur lors de la suppression définitive")
 		return
 	}
-	c.Status(http.StatusOK)
+	respondWithDelete(c, "Poignée supprimée définitivement")
 }
 
 // --- BRANCHES (LIMBS) ---
 
-func CreateLimb(c *gin.Context) {
+func (h *EquipementHandler) CreateLimb(c *gin.Context) {
 	var req CreateLimbRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Données invalides", "details": err.Error()})
@@ -234,6 +266,7 @@ func CreateLimb(c *gin.Context) {
 	anneeInt, prixFloat, err = parseEquipementFields(req.AnneeAchat, req.Prix)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 
 	limb := models.Limb{
@@ -248,28 +281,33 @@ func CreateLimb(c *gin.Context) {
 		Disponibilite: true,
 	}
 
-	if err := database.DB.Create(&limb).Error; err != nil {
+	if err := h.limbRepo.Create(&limb); err != nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "Impossible d'ajouter les branches (Numéro de série déjà existant ?)"})
 		return
 	}
 
-	// On envoie un ordre prioritaire à HTMX pour forcer le changement de page
-	c.Header("HX-Redirect", "/equipement")
-
-	c.JSON(http.StatusCreated, limb)
+	respondWithRedirect(c, "/equipement", limb, http.StatusCreated)
 }
 
-func ListLimbs(c *gin.Context) {
-	var limbs []models.Limb
-	database.DB.Find(&limbs)
+func (h *EquipementHandler) ListLimbs(c *gin.Context) {
+	limbs, err := h.limbRepo.GetAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la récupération des branches"})
+		return
+	}
 	c.JSON(http.StatusOK, limbs)
 }
 
-func UpdateLimb(c *gin.Context) {
-	id := c.Param("id")
-	var limb models.Limb
+func (h *EquipementHandler) UpdateLimb(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		return
+	}
 
-	if err := database.DB.First(&limb, id).Error; err != nil {
+	limb, err := h.limbRepo.GetByID(uint(id))
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Branches introuvables"})
 		return
 	}
@@ -283,12 +321,13 @@ func UpdateLimb(c *gin.Context) {
 	var (
 		anneeInt  int     = 0
 		prixFloat float64 = 0.0
-		err       error   = nil
+		errConv   error   = nil
 	)
 
-	anneeInt, prixFloat, err = parseEquipementFields(req.AnneeAchat, req.Prix)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	anneeInt, prixFloat, errConv = parseEquipementFields(req.AnneeAchat, req.Prix)
+	if errConv != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": errConv.Error()})
+		return
 	}
 
 	limb.NumeroSerie = req.NumeroSerie
@@ -300,44 +339,45 @@ func UpdateLimb(c *gin.Context) {
 	limb.AnneeAchat = anneeInt
 	limb.Prix = prixFloat
 
-	database.DB.Save(&limb)
+	if err := h.limbRepo.Update(limb); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la mise à jour"})
+		return
+	}
 
-	// On envoie un ordre prioritaire à HTMX pour forcer le changement de page
-	c.Header("HX-Redirect", "/equipement")
-	c.JSON(http.StatusOK, limb)
+	respondWithRedirect(c, "/equipement", limb, http.StatusOK)
 }
 
-func DeleteLimb(c *gin.Context) {
-	id := c.Param("id")
-	var limb models.Limb
+func (h *EquipementHandler) DeleteLimb(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		return
+	}
 
-	if err := database.DB.First(&limb, id).Error; err != nil {
+	limb, err := h.limbRepo.GetByID(uint(id))
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Branches introuvables"})
 		return
 	}
 
-	database.DB.Delete(&limb)
-
-	// 1. Si la requête vient de l'interface web (HTMX)
-	if c.GetHeader("HX-Request") == "true" {
-		// On renvoie du vide pour que la ligne du tableau s'évapore proprement
-		c.String(http.StatusOK, "")
+	if err := h.limbRepo.Delete(limb); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la suppression"})
 		return
 	}
 
-	// 2. Si la requête vient d'ailleurs (Postman, future application mobile, etc.)
-	// On renvoie un vrai message JSON clair pour l'API
-	c.JSON(http.StatusOK, gin.H{"message": "Branches supprimées du catalogue"})
+	respondWithDelete(c, "Branches supprimées du catalogue")
 }
 
-// GetMaterielPage affiche la page d'inventaire avec les poignées et les branches
-func GetEquipementPage(c *gin.Context) {
-	var risers []models.Riser
-	var limbs []models.Limb
+// GetEquipementPage affiche la page d'inventaire avec les poignées et les branches
+func (h *EquipementHandler) GetEquipementPage(c *gin.Context) {
+	risers, errR := h.riserRepo.GetAll()
+	limbs, errL := h.limbRepo.GetAll()
 
-	// Récupération de tout le matériel
-	database.DB.Find(&risers)
-	database.DB.Find(&limbs)
+	if errR != nil || errL != nil {
+		c.HTML(http.StatusInternalServerError, "index.html", gin.H{"error": "Erreur lors de la récupération du matériel"})
+		return
+	}
 
 	c.HTML(http.StatusOK, "equipement.html", gin.H{
 		"titre":    "Inventaire Matériel - Toxophilus",
@@ -349,16 +389,22 @@ func GetEquipementPage(c *gin.Context) {
 }
 
 // GetEditLimbPage affiche le formulaire de modification de branches
-func GetEditLimbPage(c *gin.Context) {
-	id := c.Param("id")
-	var limb models.Limb
-	if err := database.DB.First(&limb, id).Error; err != nil {
+func (h *EquipementHandler) GetEditLimbPage(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.HTML(http.StatusNotFound, "index.html", gin.H{"error": "ID invalide"})
+		return
+	}
+
+	limb, err := h.limbRepo.GetByID(uint(id))
+	if err != nil {
 		c.HTML(http.StatusNotFound, "index.html", gin.H{"error": "Branches introuvables"})
 		return
 	}
 
 	c.HTML(http.StatusOK, "equipement_edit.html", gin.H{
-		"titre":   "Modifier les branches " + limb.NumeroSerie, // <-- Corrigé ici !
+		"titre":   "Modifier les branches " + limb.NumeroSerie,
 		"type":    "limb",
 		"item":    limb,
 		"Version": config.AppVersion,
@@ -366,34 +412,46 @@ func GetEditLimbPage(c *gin.Context) {
 }
 
 // ReactivateLimb annule le soft-delete de branches
-func ReactivateLimb(c *gin.Context) {
-	id := c.Param("id")
-	if err := database.DB.Unscoped().Model(&models.Limb{}).Where("id = ?", id).Update("deleted_at", nil).Error; err != nil {
+func (h *EquipementHandler) ReactivateLimb(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.String(http.StatusBadRequest, "ID invalide")
+		return
+	}
+
+	if err := h.limbRepo.Reactivate(uint(id)); err != nil {
 		c.String(http.StatusInternalServerError, "Erreur lors de la restauration")
 		return
 	}
-	c.Status(http.StatusOK)
+	respondWithReactivate(c, "Branches restaurées avec succès")
 }
 
 // HardDeleteLimb supprime définitivement les branches de la base
-func HardDeleteLimb(c *gin.Context) {
-	id := c.Param("id")
-	if err := database.DB.Unscoped().Delete(&models.Limb{}, id).Error; err != nil {
+func (h *EquipementHandler) HardDeleteLimb(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.ParseUint(idStr, 10, 32)
+	if err != nil {
+		c.String(http.StatusBadRequest, "ID invalide")
+		return
+	}
+
+	if err := h.limbRepo.HardDelete(uint(id)); err != nil {
 		c.String(http.StatusInternalServerError, "Erreur lors de la suppression définitive")
 		return
 	}
-	c.Status(http.StatusOK)
+	respondWithDelete(c, "Branches supprimées définitivement")
 }
 
 // GetEquipementArchivesPage affiche la page des archives du matériel
-func GetEquipementArchivesPage(c *gin.Context) {
-	var risers []models.Riser
-	var limbs []models.Limb
+func (h *EquipementHandler) GetEquipementArchivesPage(c *gin.Context) {
+	risers, errR := h.riserRepo.GetArchived()
+	limbs, errL := h.limbRepo.GetArchived()
 
-	// Unscoped() permet de voir les lignes supprimées.
-	// On filtre avec "deleted_at IS NOT NULL" pour ne prendre QUE la corbeille.
-	database.DB.Unscoped().Where("deleted_at IS NOT NULL").Find(&risers)
-	database.DB.Unscoped().Where("deleted_at IS NOT NULL").Find(&limbs)
+	if errR != nil || errL != nil {
+		c.HTML(http.StatusInternalServerError, "index.html", gin.H{"error": "Erreur lors du chargement des archives"})
+		return
+	}
 
 	c.HTML(http.StatusOK, "equipement_archives.html", gin.H{
 		"titre":   "Archives du Matériel - Club Toxophilus",

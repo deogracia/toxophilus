@@ -4,7 +4,7 @@
 <body>
     <main class="container">
         {{ template "nav" . }}
-
+        <hr>
         <section>
             <h2>✏️ {{ .titre }}</h2>
             <p>Modification des informations du matériel.</p>
@@ -65,7 +65,7 @@
                 </label>
                 {{ end }}
 
-                <div id="error-edit" style="color: var(--pico-del-color); margin-bottom: 1rem; font-weight: bold;"></div>
+                <div id="error-edit" class="error-box"></div>
 
                 <div class="grid">
                     <button type="submit">💾 Enregistrer les modifications</button>
@@ -75,24 +75,6 @@
         </section>
     </main>
 
-    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js"></script>
-    <script>
-        document.body.addEventListener('htmx:responseError', function(evt) {
-            try {
-                const response = JSON.parse(evt.detail.xhr.response);
-                if (response.error) {
-                    const errorDiv = document.getElementById('error-edit');
-                    if(errorDiv) errorDiv.innerText = "❌ " + response.error;
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        });
-
-        document.body.addEventListener('htmx:beforeRequest', function(evt) {
-            const errorDiv = document.getElementById('error-edit');
-            if(errorDiv) errorDiv.innerText = "";
-        });
-    </script>
+    {{ template "footer" . }}
 </body>
 </html>

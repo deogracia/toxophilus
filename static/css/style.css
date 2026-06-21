@@ -1,0 +1,69 @@
+/* Styles sémantiques personnalisés pour Toxophilus */
+
+/* 1. Conteneurs d'en-tête de page flexibles (Titre + Action) */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+.page-header h2, 
+.page-header h3 {
+    margin-bottom: 0;
+}
+
+.page-header p {
+    margin-bottom: 0;
+}
+
+/* 2. Boutons d'action compacts spécifiques aux tableaux */
+.btn-compact {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    margin-bottom: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 3. Messages d'erreurs HTMX unifiés */
+.error-box {
+    color: var(--pico-del-color);
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+/* 4. Cellules ou blocs d'actions flexibles */
+.table-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    white-space: nowrap;
+}
+
+/* 5. Classes utilitaires de base */
+.text-center {
+    text-align: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.p-4 {
+    padding: 2rem;
+}
+
+.mt-4 {
+    margin-top: 2rem;
+}
+
+.mb-4 {
+    margin-bottom: 2rem;
+}
+
+.align-center {
+    align-items: center;
+}

@@ -1,112 +1,112 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="light">
+<html lang="fr">
 {{ template "head" . }}
 <body>
-    <header class="container">
-        {{ template "nav" . }}
-    </header>
-
     <main class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-            <h2>📝 Nouveau Contrat de Location</h2>
-            <a href="/contracts" role="button" class="secondary outline">⬅️ Annuler</a>
-        </div>
+        {{ template "nav" . }}
+        <hr>
+        <section>
+            <div class="page-header">
+                <h2>📝 Nouveau Contrat de Location</h2>
+                <a href="/contracts" role="button" class="secondary outline">⬅️ Annuler</a>
+            </div>
 
-        <article>
-            <form hx-post="/api/contracts">
-                <div id="error-contract" style="color: var(--pico-del-color); margin-bottom: 1rem;"></div>
+            <article>
+                <form hx-post="/api/contracts">
+                    <div id="error-contract" class="error-box"></div>
 
-                <fieldset>
-                    <legend><strong>👤 L'Archer</strong></legend>
-                    <label>Membre licencié
-                        <select name="member_id" required>
-                            <option value="" disabled selected>Sélectionnez un archer...</option>
-                            {{ range .Members }}
-                            <option value="{{ .ID }}">{{ .Nom }} {{ .Prenom }}</option>
-                            {{ end }}
-                        </select>
-                    </label>
-                </fieldset>
-
-                <fieldset>
-                    <legend><strong>📅 Période de location</strong></legend>
-                    <div class="grid">
-                        <label>Date de début
-                            <input type="date" name="date_debut" required>
-                        </label>
-                        <label>Date de fin
-                            <input type="date" name="date_fin" required>
-                        </label>
-                    </div>
-                </fieldset>
-
-                <fieldset>
-                    <legend><strong>🏹 Matériel Loué</strong></legend>
-                    <div class="grid">
-                        <label>Poignée (Optionnel)
-                            <select name="riser_id">
-                                <option value="">-- Aucune poignée --</option>
-                                {{ range .Risers }}
-                                <option value="{{ .ID }}">{{ .Marque }} {{ .Modele }} ({{ .Taille }}, {{ .Lateralite }}) - N° {{ .NumeroSerie }}</option>
+                    <fieldset>
+                        <legend><strong>👤 L'Archer</strong></legend>
+                        <label>Membre licencié
+                            <select name="member_id" required>
+                                <option value="" disabled selected>Sélectionnez un archer...</option>
+                                {{ range .Members }}
+                                <option value="{{ .ID }}">{{ .Nom }} {{ .Prenom }}</option>
                                 {{ end }}
                             </select>
                         </label>
-                        <label>Branches (Optionnel)
-                            <select name="limb_id">
-                                <option value="">-- Aucunes branches --</option>
-                                {{ range .Limbs }}
-                                <option value="{{ .ID }}">{{ .Marque }} {{ .Modele }} ({{ .Taille }}, {{ .Puissance }}) - N° {{ .NumeroSerie }}</option>
-                                {{ end }}
-                            </select>
-                        </label>
-                    </div>
-                    <label>Accessoires supplémentaires
-                        <input type="text" name="accessoires" placeholder="Ex: Viseur, Berger Button, Repose-flèche, Fausse corde...">
-                    </label>
-                </fieldset>
+                    </fieldset>
 
-                <fieldset>
-                    <legend><strong>💶 Finances & Paiement</strong></legend>
-                    <div class="grid">
-                        <label>Montant Location (€)
-                            <input type="number" name="montant_location" step="0.01" min="0" value="0" required>
-                        </label>
-                        <label>Montant Caution (€)
-                            <input type="number" name="montant_caution" step="0.01" min="0" value="0" required>
-                        </label>
-                    </div>
-                    <div class="grid">
-                        <label>État du paiement
-                            <select name="etat_paiement" required>
-                                <option value="En attente" selected>⏳ En attente</option>
-                                <option value="Payé">✅ Payé</option>
-                            </select>
-                        </label>
-                        <label>Mode de paiement
-                            <select name="mode_paiement">
-                                <option value="Non défini" selected>-- À définir --</option>
-                                <option value="Carte Bancaire">Carte Bancaire</option>
-                                <option value="Chèque">Chèque</option>
-                                <option value="Espèces">Espèces</option>
-                                <option value="Virement">Virement</option>
-                                <option value="Autre">Autre</option>
-                            </select>
-                        </label>
-                    </div>
-                </fieldset>
+                    <fieldset>
+                        <legend><strong>📅 Période de location</strong></legend>
+                        <div class="grid">
+                            <label>Date de début
+                                <input type="date" name="date_debut" required>
+                            </label>
+                            <label>Date de fin
+                                <input type="date" name="date_fin" required>
+                            </label>
+                        </div>
+                    </fieldset>
 
-                <fieldset>
-                    <legend><strong>💬 Notes</strong></legend>
-                    <label>Commentaires apparaissant sur le contrat
-                        <textarea name="commentaire" placeholder="Ex: Rayure sur la branche supérieure signalée lors de la remise..."></textarea>
-                    </label>
-                </fieldset>
+                    <fieldset>
+                        <legend><strong>🏹 Matériel Loué</strong></legend>
+                        <div class="grid">
+                            <label>Poignée (Optionnel)
+                                <select name="riser_id">
+                                    <option value="">-- Aucune poignée --</option>
+                                    {{ range .Risers }}
+                                    <option value="{{ .ID }}">{{ .Marque }} {{ .Modele }} ({{ .Taille }}, {{ .Lateralite }}) - N° {{ .NumeroSerie }}</option>
+                                    {{ end }}
+                                </select>
+                            </label>
+                            <label>Branches (Optionnel)
+                                <select name="limb_id">
+                                    <option value="">-- Aucunes branches --</option>
+                                    {{ range .Limbs }}
+                                    <option value="{{ .ID }}">{{ .Marque }} {{ .Modele }} ({{ .Taille }}, {{ .Puissance }}) - N° {{ .NumeroSerie }}</option>
+                                    {{ end }}
+                                </select>
+                            </label>
+                        </div>
+                        <label>Accessoires supplémentaires
+                            <input type="text" name="accessoires" placeholder="Ex: Viseur, Berger Button, Repose-flèche, Fausse corde...">
+                        </label>
+                    </fieldset>
 
-                <button type="submit">Enregistrer le contrat</button>
-            </form>
-        </article>
+                    <fieldset>
+                        <legend><strong>💶 Finances & Paiement</strong></legend>
+                        <div class="grid">
+                            <label>Montant Location (€)
+                                <input type="number" name="montant_location" step="0.01" min="0" value="0" required>
+                            </label>
+                            <label>Montant Caution (€)
+                                <input type="number" name="montant_caution" step="0.01" min="0" value="0" required>
+                            </label>
+                        </div>
+                        <div class="grid">
+                            <label>État du paiement
+                                <select name="etat_paiement" required>
+                                    <option value="En attente" selected>⏳ En attente</option>
+                                    <option value="Payé">✅ Payé</option>
+                                </select>
+                            </label>
+                            <label>Mode de paiement
+                                <select name="mode_paiement">
+                                    <option value="Non défini" selected>-- À définir --</option>
+                                    <option value="Carte Bancaire">Carte Bancaire</option>
+                                    <option value="Chèque">Chèque</option>
+                                    <option value="Espèces">Espèces</option>
+                                    <option value="Virement">Virement</option>
+                                    <option value="Autre">Autre</option>
+                                </select>
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend><strong>💬 Notes</strong></legend>
+                        <label>Commentaires apparaissant sur le contrat
+                            <textarea name="commentaire" placeholder="Ex: Rayure sur la branche supérieure signalée lors de la remise..."></textarea>
+                        </label>
+                    </fieldset>
+
+                    <button type="submit">Enregistrer le contrat</button>
+                </form>
+            </article>
+        </section>
     </main>
 
-    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/json-enc.js"></script>
+    {{ template "footer" . }}
 </body>
 </html>

@@ -1,75 +1,77 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="light">
+<html lang="fr">
 {{ template "head" . }}
 <body>
-    <header class="container">
-        {{ template "nav" . }}
-    </header>
-
     <main class="container">
-        <h2>⚙️ Paramètres du Club</h2>
-        <p>Configurez les informations officielles du club et le visuel des contrats PDF.</p>
+        {{ template "nav" . }}
+        <hr>
+        <section>
+            <h2>⚙️ Paramètres du Club</h2>
+            <p>Configurez les informations officielles du club et le visuel des contrats PDF.</p>
 
-        <article>
-            <!-- Formulaire classique pour l'upload de fichier -->
-            <form action="/settings/save" method="POST" enctype="multipart/form-data">
+            <article>
+                <!-- Formulaire classique pour l'upload de fichier -->
+                <form action="/settings/save" method="POST" enctype="multipart/form-data">
 
-                <fieldset>
-                    <legend><strong>🏢 Identité du Club</strong></legend>
-                    <div class="grid">
-                        <label>Nom du club
-                            <input type="text" name="pdf_club_name" value="{{ .Settings.pdf_club_name }}" placeholder="Ex: Archers de Draveil">
+                    <fieldset>
+                        <legend><strong>🏢 Identité du Club</strong></legend>
+                        <div class="grid">
+                            <label>Nom du club
+                                <input type="text" name="pdf_club_name" value="{{ .Settings.pdf_club_name }}" placeholder="Ex: Archers de Draveil">
+                            </label>
+                            <label>Sous-titre / Affiliation / Devise
+                                <input type="text" name="pdf_club_subtitle" value="{{ .Settings.pdf_club_subtitle }}" placeholder="Ex: Sénart Val-de-Seine">
+                            </label>
+                        </div>
+                        <div class="grid">
+                            <label>Adresse postale du club
+                                <input type="text" name="club_address" value="{{ .Settings.club_address }}" placeholder="Ex: 44 rue Charles Mory, 91210 DRAVEIL">
+                            </label>
+                            <label>URL du site Web
+                                <input type="url" name="club_website" value="{{ .Settings.club_website }}" placeholder="Ex: https://archersdedraveil.com">
+                            </label>
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend><strong>🖼️ Bandeau Officiel (PDF)</strong></legend>
+                        <label>Image d'en-tête du contrat (Bandeau horizontal JPG/PNG)
+                            <input type="file" name="header_image" accept=".jpg,.jpeg,.png">
                         </label>
-                        <label>Sous-titre / Affiliation / Devise
-                            <input type="text" name="pdf_club_subtitle" value="{{ .Settings.pdf_club_subtitle }}" placeholder="Ex: Sénart Val-de-Seine">
+                        {{ if .Settings.pdf_header_image }}
+                            <small style="color: var(--pico-ins-color);">✔️ Un bandeau est actuellement configuré.</small>
+                        {{ else }}
+                            <small class="secondary">Aucun bandeau image configuré. Le mode texte sera utilisé par défaut.</small>
+                        {{ end }}
+                    </fieldset>
+
+                    <fieldset>
+                        <legend><strong>⚖️ Mentions Légales & Pied de page</strong></legend>
+                        <label>Ligne de pied de page 1 (Identifiants, SIRET, Affiliation...)
+                            <input type="text" name="pdf_footer_ligne1" value="{{ .Settings.pdf_footer_ligne1 }}" placeholder="Association N°... - Affilié FFTA N°...">
                         </label>
-                    </div>
-                    <div class="grid">
-                        <label>Adresse postale du club
-                            <input type="text" name="club_address" value="{{ .Settings.club_address }}" placeholder="Ex: 44 rue Charles Mory, 91210 DRAVEIL">
+                        <label>Ligne de pied de page 2 (Siège social, contact, site web...)
+                            <input type="text" name="pdf_footer_ligne2" value="{{ .Settings.pdf_footer_ligne2 }}" placeholder="Siège social : 44 rue Charles Mory...">
                         </label>
-                        <label>URL du site Web
-                            <input type="url" name="club_website" value="{{ .Settings.club_website }}" placeholder="Ex: https://archersdedraveil.com">
+                        <label>
+                            <input type="checkbox" name="pdf_show_contact_footer" value="true" {{ if eq .Settings.pdf_show_contact_footer "true" }}checked{{ end }}>
+                            Inclure automatiquement l'adresse et le site web du club (s'ils sont définis) en dernières lignes du pied de page
                         </label>
-                    </div>
-                </fieldset>
+                    </fieldset>
 
-                <fieldset>
-                    <legend><strong>🖼️ Bandeau Officiel (PDF)</strong></legend>
-                    <label>Image d'en-tête du contrat (Bandeau horizontal JPG/PNG)
-                        <input type="file" name="header_image" accept=".jpg,.jpeg,.png">
-                    </label>
-                    {{ if .Settings.pdf_header_image }}
-                        <small style="color: var(--pico-ins-color);">✔️ Un bandeau est actuellement configuré.</small>
-                    {{ else }}
-                        <small style="color: var(--pico-muted-color);">Aucun bandeau image configuré. Le mode texte sera utilisé par défaut.</small>
-                    {{ end }}
-                </fieldset>
+                    <fieldset>
+                        <legend><strong>📝 Clauses du Contrat</strong></legend>
+                        <label>Conditions générales de location (Affichées sur le PDF)
+                            <textarea name="pdf_clauses_location" rows="5" placeholder="Le locataire s'engage à prendre soin du matériel confié...">{{ .Settings.pdf_clauses_location }}</textarea>
+                        </label>
+                    </fieldset>
 
-                <fieldset>
-                    <legend><strong>⚖️ Mentions Légales & Pied de page</strong></legend>
-                    <label>Ligne de pied de page 1 (Identifiants, SIRET, Affiliation...)
-                        <input type="text" name="pdf_footer_ligne1" value="{{ .Settings.pdf_footer_ligne1 }}" placeholder="Association N°... - Affilié FFTA N°...">
-                    </label>
-                    <label>Ligne de pied de page 2 (Siège social, contact, site web...)
-                        <input type="text" name="pdf_footer_ligne2" value="{{ .Settings.pdf_footer_ligne2 }}" placeholder="Siège social : 44 rue Charles Mory...">
-                    </label>
-                    <label>
-                        <input type="checkbox" name="pdf_show_contact_footer" value="true" {{ if eq .Settings.pdf_show_contact_footer "true" }}checked{{ end }}>
-                        Inclure automatiquement l'adresse et le site web du club (s'ils sont définis) en dernières lignes du pied de page
-                    </label>
-                </fieldset>
-
-                <fieldset>
-                    <legend><strong>📝 Clauses du Contrat</strong></legend>
-                    <label>Conditions générales de location (Affichées sur le PDF)
-                        <textarea name="pdf_clauses_location" rows="5" placeholder="Le locataire s'engage à prendre soin du matériel confié...">{{ .Settings.pdf_clauses_location }}</textarea>
-                    </label>
-                </fieldset>
-
-                <button type="submit">💾 Enregistrer les paramètres</button>
-            </form>
-        </article>
+                    <button type="submit">💾 Enregistrer les paramètres</button>
+                </form>
+            </article>
+        </section>
     </main>
+
+    {{ template "footer" . }}
 </body>
 </html>
