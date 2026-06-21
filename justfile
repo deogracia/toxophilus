@@ -82,8 +82,10 @@ etat-projet:
 audit:
 	@echo "🔍 1. Vérification des dépendances avec govulncheck..."
 	govulncheck ./...
-	@echo "\n🛡️ 2. Scan de sécurité du code avec gosec..."
+	@echo ""
+	@echo "🛡️ 2. Scan de sécurité du code avec gosec..."
 	gosec -exclude-dir=dist ./...
-	@echo "\n🧹 3. Vérification des bonnes pratiques avec golangci-lint..."
-	@echo "\n Todo..."
+	@echo ""
+	@echo "🧹 3. Vérification des bonnes pratiques avec golangci-lint..."
+	@echo " Todo..."
 	# golangci-lint run
