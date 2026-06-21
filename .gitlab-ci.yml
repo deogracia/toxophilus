@@ -59,7 +59,7 @@ build_all:
 
     # Compilation
     - go build -ldflags="$LDFLAGS" -o dist/toxophilus-$GOOS-$GOARCH$EXT ./cmd/server/main.go
-    - go build -ldflags="$LDFLAGS" -o dist/toxophilus-create-user-$GOOS-$GOARCH$EXT ./cmd/create_user/main.go
+    - go build -ldflags="$LDFLAGS" -o dist/toxophilus_cli-$GOOS-$GOARCH$EXT ./cmd/create_user/main.go
     - cp config-example.toml dist/
 
     # Création de l'archive
