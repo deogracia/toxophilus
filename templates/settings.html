@@ -59,12 +59,30 @@
                         </label>
                     </fieldset>
 
-                    <fieldset>
-                        <legend><strong>📝 Clauses du Contrat</strong></legend>
-                        <label>Conditions générales de location (Affichées sur le PDF)
-                            <textarea name="pdf_clauses_location" rows="5" placeholder="Le locataire s'engage à prendre soin du matériel confié...">{{ .Settings.pdf_clauses_location }}</textarea>
-                        </label>
-                    </fieldset>
+            <fieldset>
+                <legend><strong>📝 Clauses du Contrat de Location</strong></legend>
+                <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Définissez le texte des clauses officielles affichées sur vos contrats PDF.</p>
+                
+                <label><strong>1. Mise à disposition</strong>
+                    <textarea name="pdf_clause_mise_disposition" rows="3" placeholder="Ex: Le club met à disposition le matériel révisé...">{{ .Settings.pdf_clause_mise_disposition }}</textarea>
+                </label>
+                
+                <label><strong>2. Conditions d'utilisation</strong>
+                    <textarea name="pdf_clause_conditions_utilisation" rows="3" placeholder="Ex: Prêt strictement personnel, respect de la sécurité...">{{ .Settings.pdf_clause_conditions_utilisation }}</textarea>
+                </label>
+                
+                <label><strong>3. Entretien et réparations</strong>
+                    <textarea name="pdf_clause_entretien_reparations" rows="3" placeholder="Ex: L'adhérent s'engage à prendre soin, signalement de casse...">{{ .Settings.pdf_clause_entretien_reparations }}</textarea>
+                </label>
+                
+                <label><strong>4. Dépôt de garantie (Caution)</strong>
+                    <textarea name="pdf_clause_depot_garantie" rows="3" placeholder="Ex: Un chèque de caution non encaissé est requis...">{{ .Settings.pdf_clause_depot_garantie }}</textarea>
+                </label>
+                
+                <label><strong>5. Durée et restitution</strong>
+                    <textarea name="pdf_clause_duree_restitution" rows="3" placeholder="Ex: Restitution propre et complète à la date fixée...">{{ .Settings.pdf_clause_duree_restitution }}</textarea>
+                </label>
+            </fieldset>
 
                     <button type="submit">💾 Enregistrer les paramètres</button>
                 </form>

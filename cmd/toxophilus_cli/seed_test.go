@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/deogracia/toxophilus/database"
@@ -95,5 +96,11 @@ func TestSeedData(t *testing.T) {
 	db.Where("cle = ?", "pdf_club_subtitle").First(&settingSubtitle)
 	if settingSubtitle.Valeur != "La flèche de Sénart" {
 		t.Errorf("Attendu 'La flèche de Sénart' pour pdf_club_subtitle, obtenu %s", settingSubtitle.Valeur)
+	}
+
+	var settingClause models.Setting
+	db.Where("cle = ?", "pdf_clause_mise_disposition").First(&settingClause)
+	if !strings.Contains(settingClause.Valeur, "Le club, dont le données figurent en bas de ce contrat, met à disposition de l'adhérent le matériel d'archerie désigné ci-dessus") {
+		t.Errorf("La clause de mise à disposition est absente ou incorrecte, obtenu %s", settingClause.Valeur)
 	}
 }
