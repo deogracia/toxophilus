@@ -2,6 +2,7 @@ package services
 
 import (
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -59,7 +60,7 @@ func TestGenerateContractPDF(t *testing.T) {
 	}
 
 	// 5. Vérification B : Le nom du fichier correspond-il à l'ID ?
-	expectedFilename := "contrat_999.pdf"
+	expectedFilename := "Contrat-N°" + strconv.FormatInt(int64(contract.ID), 10) + "-" + contract.Member.Nom + "-" + contract.Member.Prenom + "-" + contract.DateDebut.Format("2006-01-02") + ".pdf"
 	if filename != expectedFilename {
 		t.Errorf("❌ Nom de fichier incorrect. Attendu: %s, Obtenu: %s", expectedFilename, filename)
 	}
