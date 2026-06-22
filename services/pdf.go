@@ -276,7 +276,7 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 		})
 	})
 
-	filename := fmt.Sprintf("contrat_%d.pdf", contract.ID)
+	filename := fmt.Sprintf("Contrat-N°%d-%s-%s-%s.pdf", contract.ID, contract.Member.Nom, contract.Member.Prenom, contract.DateDebut.Format("2006-01-02"))
 	err := m.OutputFileAndClose(filename)
 	if err != nil {
 		return "", err
