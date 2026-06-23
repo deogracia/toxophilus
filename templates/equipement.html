@@ -12,7 +12,14 @@
                 <a href="/equipement/archives" class="secondary">🗃️ Voir le matériel supprimé</a>
             </p>
 
-            <div class="grid">
+            <!-- Barre d'onglets sémantique fusionnée via role="group" -->
+            <div role="group" class="mb-4" style="max-width: 500px; margin: 0 auto 2rem auto;">
+                <button id="tab-risers" class="" onclick="switchTab('risers')">🏹 Poignées (Risers)</button>
+                <button id="tab-limbs" class="outline secondary" onclick="switchTab('limbs')">🌿 Branches (Limbs)</button>
+            </div>
+
+            <!-- Contenu de l'onglet Poignées (Affiché par défaut) -->
+            <div id="content-risers">
                 <article>
                     <header>
                         <h3>Poignées (Risers)</h3>
@@ -22,8 +29,8 @@
                         <form hx-post="/api/risers" hx-ext="json-enc">
                             <div class="grid">
                                 <label>Numéro de série <input type="text" name="numero_serie" placeholder="Ex: P-001" required></label>
-                                <label>Marque <input type="text" name="marque"></label>
-                                <label>Modèle <input type="text" name="modele"></label>
+                                <label>Marque <input type="text" name="marque" required></label>
+                                <label>Modèle <input type="text" name="modele" placeholder="Ex: Motive FX"></label>
                             </div>
                             <div class="grid">
                                 <label>Taille
@@ -63,7 +70,7 @@
                             <button type="submit">Enregistrer</button>
                         </form>
                     </details>
-                    <figure>
+                    <div class="overflow-auto">
                         <table class="striped">
                             <thead>
                                 <tr>
@@ -71,6 +78,7 @@
                                     <th>Modèle</th>
                                     <th>Latéralité</th>
                                     <th>Taille</th>
+                                    <th>Prix</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -81,6 +89,7 @@
                                     <td>{{ .Marque }} {{ .Modele }}</td>
                                     <td>{{ .Lateralite }}</td>
                                     <td>{{ .Taille }}</td>
+                                    <td>{{ if ne .Prix 0.0 }}{{ printf "%.2f €" .Prix }}{{ else }}--{{ end }}</td>
                                     <td>
                                         <div class="table-actions">
                                             <a href="/equipement/edit/riser/{{ .ID }}" role="button" class="outline btn-compact" title="Modifier">
@@ -97,13 +106,16 @@
                                     </td>
                                 </tr>
                                 {{ else }}
-                                <tr><td colspan="5" class="text-center">Aucune poignée en stock.</td></tr>
+                                <tr><td colspan="6" class="text-center">Aucune poignée en stock.</td></tr>
                                 {{ end }}
                             </tbody>
                         </table>
-                    </figure>
+                    </div>
                 </article>
+            </div>
 
+            <!-- Contenu de l'onglet Branches (Caché par défaut) -->
+            <div id="content-limbs" style="display: none;">
                 <article>
                     <header>
                         <h3>Branches (Limbs)</h3>
@@ -113,7 +125,8 @@
                         <form hx-post="/api/limbs" hx-ext="json-enc">
                             <div class="grid">
                                 <label>Numéro de série <input type="text" name="numero_serie" placeholder="Ex: B-001" required></label>
-                                <label>Marque <input type="text" name="marque"></label>
+                                <label>Marque <input type="text" name="marque" required></label>
+                                <label>Modèle <input type="text" name="modele" placeholder="Ex: Sx50"></label>
                             </div>
                             <div class="grid">
                                 <label>Taille globale
@@ -125,12 +138,29 @@
                                 </label>
                                 <label>Puissance (lbs) <input type="number" name="puissance" required min="12" max="40" step="2" value="20"></label>
                             </div>
+                            <div class="grid">
+                                <label>Année d'achat
+                                    <input type="number"
+                                        name="annee_achat"
+                                        placeholder="AAAA, soit l'année sur 4 chiffres"
+                                        min="1970"
+                                        max="2500"
+                                        step="1">
+                                </label>
+                                <label>Prix d'achat (€)
+                                    <input type="number"
+                                        name="prix"
+                                        placeholder="0.00, soit le montant au centime près"
+                                        min="0.00"
+                                        step="0.01">
+                                </label>
+                            </div>
                             <label>Remarques <input type="text" name="remarques" placeholder="État général..."></label>
                             <div id="error-branche" class="error-box"></div>
                             <button type="submit">Enregistrer</button>
                         </form>
                     </details>
-                    <figure>
+                    <div class="overflow-auto">
                         <table class="striped">
                             <thead>
                                 <tr>
@@ -138,6 +168,7 @@
                                     <th>Modèle</th>
                                     <th>Puissance</th>
                                     <th>Taille</th>
+                                    <th>Prix</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -148,6 +179,7 @@
                                     <td>{{ .Marque }} {{ .Modele }}</td>
                                     <td>{{ .Puissance }} lbs</td>
                                     <td>{{ .Taille }}</td>
+                                    <td>{{ if ne .Prix 0.0 }}{{ printf "%.2f €" .Prix }}{{ else }}--{{ end }}</td>
                                     <td>
                                         <div class="table-actions">
                                             <a href="/equipement/edit/limb/{{ .ID }}" role="button" class="outline btn-compact" title="Modifier">
@@ -164,11 +196,11 @@
                                     </td>
                                 </tr>
                                 {{ else }}
-                                <tr><td colspan="5" class="text-center">Aucune branche en stock.</td></tr>
+                                <tr><td colspan="6" class="text-center">Aucune branche en stock.</td></tr>
                                 {{ end }}
                             </tbody>
                         </table>
-                    </figure>
+                    </div>
                 </article>
             </div>
         </section>
