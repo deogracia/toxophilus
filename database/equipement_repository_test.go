@@ -82,7 +82,7 @@ func TestGormLimbRepository(t *testing.T) {
 			NumeroSerie: "L-101",
 			Marque:      "Uukha",
 			Taille:      "68 pouces",
-			Puissance:   "28#",
+			Puissance:   "28",
 		}
 
 		err := repo.Create(limb)

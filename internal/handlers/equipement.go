@@ -403,6 +403,18 @@ func (h *EquipementHandler) GetEditLimbPage(c *gin.Context) {
 		return
 	}
 
+	// Nettoyage de la puissance pour le formulaire HTML d'édition (qui est de type "number")
+	// On ne garde que les chiffres pour éviter que le navigateur n'affiche une zone de saisie vide !
+	puissanceChiffres := ""
+	for _, char := range limb.Puissance {
+		if char >= '0' && char <= '9' {
+			puissanceChiffres += string(char)
+		}
+	}
+	if puissanceChiffres != "" {
+		limb.Puissance = puissanceChiffres
+	}
+
 	c.HTML(http.StatusOK, "equipement_edit.html", gin.H{
 		"titre":   "Modifier les branches " + limb.NumeroSerie,
 		"type":    "limb",
