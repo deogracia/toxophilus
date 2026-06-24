@@ -106,7 +106,7 @@ func (h *ContractHandler) GetNewContractPage(c *gin.Context) {
 
 	// Récupération des réglages de caution et loyer
 	cautionSetting, _ := h.settingRepo.GetByKey("montant_caution")
-	loyerSetting, _ := h.settingRepo.GetByKey("montant_arc_nu")
+	loyerSetting, _ := h.settingRepo.GetByKey("montant_loyer")
 
 	cautionVal := "0"
 	if cautionSetting != nil {

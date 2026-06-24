@@ -165,6 +165,6 @@
     "pdf_clause_depot_garantie": "Un chèque de dépôt de garantie (non encaissé) est remis lors de la signature du contrat. Ce chèque sera restitué à l'adhérent après restitution complète, vérification et nettoyage du matériel. En cas de perte, de vol, ou de dommages excédant l'usure normale, le Club retiendra sur cette caution les sommes nécessaires à la remise en état ou au remplacement à neuf du matériel (sur présentation de facture ou de devis). Si le montant des dégâts is supérieur à la caution, le Locataire s'engage à régler la différence.",
     "pdf_clause_duree_restitution": "La location est accordée pour la durée fermement fixée au contrat. À l'échéance, l'adhérent s'engage à restituer l'intégralité du matériel propre et au complet. Tout retard non justifié pourra entraîner l'encaissement de la caution ou le refus de locations futures.",
     "montant_caution": "300.00",
-    "montant_arc_nu": "120.00"
+    "montant_loyer": "120.00"
   }
 }
