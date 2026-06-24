@@ -64,16 +64,16 @@
                         </label>
                     </fieldset>
 
-                    <fieldset>
-                        <legend><strong>💶 Finances & Paiement</strong></legend>
-                        <div class="grid">
-                            <label>Montant Location (€)
-                                <input type="number" name="montant_location" step="0.01" min="0" value="0" required>
-                            </label>
-                            <label>Montant Caution (€)
-                                <input type="number" name="montant_caution" step="0.01" min="0" value="0" required>
-                            </label>
-                        </div>
+            <fieldset>
+                <legend><strong>💶 Finances & Paiement</strong></legend>
+                <div class="grid">
+                    <label>Montant Location (€)
+                        <input type="number" name="montant_location" step="0.01" min="0" value="{{ .Loyer }}" required>
+                    </label>
+                    <label>Montant Caution (€)
+                        <input type="number" name="montant_caution" step="0.01" min="0" value="{{ .Caution }}" required>
+                    </label>
+                </div>
                         <div class="grid">
                             <label>État du paiement
                                 <select name="etat_paiement" required>
