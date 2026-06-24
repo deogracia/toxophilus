@@ -194,7 +194,7 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 		hasEquipment = true
 		m.Row(5, func() {
 			m.Col(12, func() {
-				m.Text(fmt.Sprintf("Branches : %s %s - %s / %s (N° %s)", contract.Limb.Marque, contract.Limb.Modele, contract.Limb.Taille, contract.Limb.Puissance, contract.Limb.NumeroSerie), props.Text{Size: 8})
+				m.Text(fmt.Sprintf("Branches : %s %s - %s / %s lbs (N° %s)", contract.Limb.Marque, contract.Limb.Modele, contract.Limb.Taille, contract.Limb.Puissance, contract.Limb.NumeroSerie), props.Text{Size: 8})
 			})
 		})
 	}
