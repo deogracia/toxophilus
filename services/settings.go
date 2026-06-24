@@ -34,9 +34,6 @@ func SetSetting(cle string, valeur string) error {
 // InitDefaultSettings charge en base quelques valeurs par défaut
 func InitDefaultSettings() {
 	defaults := map[string]string{
-		"montant_arc_nu":                    "120.00",
-		"duree_location_an":                 "1",
-		"montant_caution":                   "300.00",
 		"pdf_clause_mise_disposition":       "Le club Toxophilus met à disposition de l'adhérent le matériel d'archerie désigné ci-dessus, révisé, propre et en parfait état de fonctionnement pour la durée convenue.",
 		"pdf_clause_conditions_utilisation": "Le matériel est loué à titre strictement personnel et ne peut en aucun cas être prêté ou cédé à un tiers. L'adhérent s'engage à utiliser le matériel exclusivement pour la pratique du tir à l'arc dans le respect des consignes de sécurité fédérales.",
 		"pdf_clause_entretien_reparations":  "L'adhérent prendra le plus grand soin du matériel confié et assurera son entretien courant. Toute anomalie ou casse doit être signalée immédiatement au club. Les réparations liées à l'usure normale sont à la charge du club ; celles consécutives à une négligence ou mauvaise utilisation seront facturées à l'adhérent.",

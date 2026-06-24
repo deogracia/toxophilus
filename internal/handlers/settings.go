@@ -52,6 +52,7 @@ func (h *SettingHandler) ProcessSettingsSave(c *gin.Context) {
 		"pdf_clause_mise_disposition", "pdf_clause_conditions_utilisation",
 		"pdf_clause_entretien_reparations", "pdf_clause_depot_garantie",
 		"pdf_clause_duree_restitution",
+		"montant_caution", "montant_arc_nu",
 	}
 
 	settingsToSave := make(map[string]string)

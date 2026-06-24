@@ -104,12 +104,27 @@ func (h *ContractHandler) GetNewContractPage(c *gin.Context) {
 		}
 	}
 
+	// Récupération des réglages de caution et loyer
+	cautionSetting, _ := h.settingRepo.GetByKey("montant_caution")
+	loyerSetting, _ := h.settingRepo.GetByKey("montant_arc_nu")
+
+	cautionVal := "0"
+	if cautionSetting != nil {
+		cautionVal = cautionSetting.Valeur
+	}
+	loyerVal := "0"
+	if loyerSetting != nil {
+		loyerVal = loyerSetting.Valeur
+	}
+
 	c.HTML(http.StatusOK, "contract_new.html", gin.H{
 		"titre":   "Nouveau Contrat - Club Toxophilus",
 		"active":  "contracts",
 		"Members": members,
 		"Risers":  availableRisers,
 		"Limbs":   availableLimbs,
+		"Caution": cautionVal,
+		"Loyer":   loyerVal,
 		"Version": config.AppVersion,
 	})
 }
