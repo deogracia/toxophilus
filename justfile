@@ -64,7 +64,8 @@ seed:
 # Lance les tests puis l'application sans la compiler
 [group('On my workstation')]
 run-dev: generate-favicon test
-	$env:TOXO_APP_SECRET_KEY="super, secretkey#"; $env:APP_ENV="development"; go run ./cmd/server/main.go
+	go run ./cmd/toxophilus_cli/main.go generate-certs
+	$env:TOXO_APP_SECRET_KEY="dev_secret_key_must_be_at_least_32_chars_long_and_secure!"; $env:APP_ENV="development"; go run ./cmd/server/main.go
 
 # Génère le fichier static/favicon.ico contenant les tailles 16,32,48,128 et 256
 [group('On my workstation')]
