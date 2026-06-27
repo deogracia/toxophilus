@@ -33,3 +33,5 @@ static/favicon.ico
 *.pdf
 logs/*
 data/*
+localhost.crt
+localhost.key

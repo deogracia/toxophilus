@@ -224,6 +224,10 @@ func main() {
 	if len(secretKey) < 32 {
 		log.Fatalf("🛑 ERREUR FATALE : la clé de configuration 'app.secret_key' est trop faible (%d caractères). Elle doit faire au moins 32 caractères de long pour garantir la sécurité des tokens.", len(secretKey))
 	}
+	// Interdiction d'utiliser la clé par défaut de l'exemple config-example.toml
+	if secretKey == "cle_super_secrete_pour_les_sessions_qui_fait_plus_de_32_caracteres" || secretKey == "cle_super_secrete_pour_les_sessions" {
+		log.Fatal("🛑 ERREUR FATALE : vous utilisez une clé secrète par défaut provenant du fichier d'exemple (config-example.toml). Pour des raisons de sécurité évidentes, veuillez modifier 'app.secret_key' dans votre fichier config.toml.")
+	}
 
 	slog.Info("Connexion à la base de données "+viper.GetString("database.driver"), slog.String("DSN", viper.GetString("database.dsn")))
 	database.Connect()
