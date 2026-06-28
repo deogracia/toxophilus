@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -76,7 +77,61 @@ func (h *SettingHandler) ProcessSettingsSave(c *gin.Context) {
 	// 2. Gestion de l'upload du bandeau image
 	file, err := c.FormFile("header_image")
 	if err == nil {
-		// Un fichier a bien été soumis !
+		// Un fichier a bien été soumis ! On valide d'abord son type MIME de façon sécurisée
+		src, err := file.Open()
+		if err != nil {
+			settingsList, _ := h.repo.GetAll()
+			settingsMap := make(map[string]string)
+			for _, s := range settingsList {
+				settingsMap[s.Cle] = s.Valeur
+			}
+			c.HTML(http.StatusBadRequest, "settings.html", gin.H{
+				"titre":    "Configuration du Club - Toxophilus",
+				"active":   "settings",
+				"Settings": settingsMap,
+				"Version":  config.AppVersion,
+				"error":    "Impossible d'ouvrir l'image soumise.",
+			})
+			return
+		}
+
+		// Détection du type MIME réel à partir des 512 premiers octets (magic bytes)
+		buffer := make([]byte, 512)
+		n, err := src.Read(buffer)
+		_ = src.Close() // On ferme le flux immédiatement après lecture
+		if err != nil && err != io.EOF {
+			settingsList, _ := h.repo.GetAll()
+			settingsMap := make(map[string]string)
+			for _, s := range settingsList {
+				settingsMap[s.Cle] = s.Valeur
+			}
+			c.HTML(http.StatusBadRequest, "settings.html", gin.H{
+				"titre":    "Configuration du Club - Toxophilus",
+				"active":   "settings",
+				"Settings": settingsMap,
+				"Version":  config.AppVersion,
+				"error":    "Erreur lors de l'analyse du fichier.",
+			})
+			return
+		}
+
+		contentType := http.DetectContentType(buffer[:n])
+		if contentType != "image/jpeg" && contentType != "image/png" {
+			settingsList, _ := h.repo.GetAll()
+			settingsMap := make(map[string]string)
+			for _, s := range settingsList {
+				settingsMap[s.Cle] = s.Valeur
+			}
+			c.HTML(http.StatusBadRequest, "settings.html", gin.H{
+				"titre":    "Configuration du Club - Toxophilus",
+				"active":   "settings",
+				"Settings": settingsMap,
+				"Version":  config.AppVersion,
+				"error":    "Type de fichier non autorisé. Seules les images JPEG et PNG sont acceptées.",
+			})
+			return
+		}
+
 		// Étape Open Source essentielle : on crée un dossier "data/uploads" à la racine de l'exécution
 		uploadDir := filepath.Join("data", "uploads")
 		_ = os.MkdirAll(uploadDir, 0750)

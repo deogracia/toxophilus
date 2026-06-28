@@ -1,7 +1,7 @@
 [app]
 port = 8080
 env = "production"
-secret_key = "cle_super_secrete_pour_les_sessions"
+secret_key = "cle_super_secrete_pour_les_sessions_qui_fait_plus_de_32_caracteres"
 upload_dir = "data/uploads"
 
 [database]

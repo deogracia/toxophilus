@@ -102,6 +102,11 @@ func main() {
 	case "seed":
 		seedData()
 
+	case "generate-certs":
+		if err := auth.EnsureSelfSignedCert(); err != nil {
+			log.Fatalf("❌ Erreur lors de la génération des certificats : %v", err)
+		}
+
 	default:
 		fmt.Printf("❌ Sous-commande %q inconnue.\n", subcommand)
 		printUsage()
@@ -113,6 +118,7 @@ func printUsage() {
 	fmt.Println("Usage:")
 	fmt.Println("  toxophilus_cli create-admin <email> <password>  - Crée un administrateur")
 	fmt.Println("  toxophilus_cli seed                             - Injecte des données factices de démonstration")
+	fmt.Println("  toxophilus_cli generate-certs [cert] [key]      - Génère des certificats TLS auto-signés pour localhost")
 }
 
 func createAdmin(email, password string) {

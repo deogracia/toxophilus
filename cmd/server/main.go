@@ -217,8 +217,16 @@ func main() {
 		slog.Info("✅ Configuration : fichier config.toml chargé avec succès")
 	}
 
-	if viper.GetString("app.secret_key") == "" {
+	secretKey := viper.GetString("app.secret_key")
+	if secretKey == "" {
 		log.Fatal("🛑 ERREUR FATALE : la clé de configuration 'app.secret_key' est manquante. Le serveur refuse de démarrer pour des raisons de sécurité.")
+	}
+	if len(secretKey) < 32 {
+		log.Fatalf("🛑 ERREUR FATALE : la clé de configuration 'app.secret_key' est trop faible (%d caractères). Elle doit faire au moins 32 caractères de long pour garantir la sécurité des tokens.", len(secretKey))
+	}
+	// Interdiction d'utiliser la clé par défaut de l'exemple config-example.toml
+	if secretKey == "cle_super_secrete_pour_les_sessions_qui_fait_plus_de_32_caracteres" || secretKey == "cle_super_secrete_pour_les_sessions" {
+		log.Fatal("🛑 ERREUR FATALE : vous utilisez une clé secrète par défaut provenant du fichier d'exemple (config-example.toml). Pour des raisons de sécurité évidentes, veuillez modifier 'app.secret_key' dans votre fichier config.toml.")
 	}
 
 	slog.Info("Connexion à la base de données "+viper.GetString("database.driver"), slog.String("DSN", viper.GetString("database.dsn")))
@@ -258,11 +266,32 @@ func main() {
 		Handler:           r,
 	}
 
+	// Détection des certificats TLS pour supporter le HTTPS natif
+	certFile := viper.GetString("app.tls_cert")
+	keyFile := viper.GetString("app.tls_key")
+
+	// En développement, si rien n'est configuré explicitement, on utilise localhost.crt/key par défaut s'ils existent
+	if env == "development" && certFile == "" && keyFile == "" {
+		if _, errCert := os.Stat("localhost.crt"); errCert == nil {
+			if _, errKey := os.Stat("localhost.key"); errKey == nil {
+				certFile = "localhost.crt"
+				keyFile = "localhost.key"
+			}
+		}
+	}
+
 	// On lance le serveur dans une Goroutine (en arrière-plan) pour ne pas bloquer la suite du code
 	go func() {
-		slog.Info("🚀 Serveur en écoute", slog.String("port", port))
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("🛑 Erreur critique du serveur : %v", err)
+		if certFile != "" && keyFile != "" {
+			slog.Info("🚀 Serveur HTTPS en écoute (TLS activé)", slog.String("port", port), slog.String("cert", certFile))
+			if err := srv.ListenAndServeTLS(certFile, keyFile); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				log.Fatalf("🛑 Erreur critique du serveur HTTPS : %v", err)
+			}
+		} else {
+			slog.Info("🚀 Serveur HTTP en écoute", slog.String("port", port))
+			if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+				log.Fatalf("🛑 Erreur critique du serveur HTTP : %v", err)
+			}
 		}
 	}()
 

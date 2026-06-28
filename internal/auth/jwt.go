@@ -39,6 +39,10 @@ func ValidateToken(tokenString string) (*Claims, error) {
 	secret := viper.GetString("app.secret_key")
 
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		// Vérification explicite de la méthode de signature HMAC pour éviter les attaques 'none' ou asymétriques
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, jwt.ErrSignatureInvalid
+		}
 		return []byte(secret), nil
 	})
 

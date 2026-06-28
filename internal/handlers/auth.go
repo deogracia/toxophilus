@@ -43,14 +43,13 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 
-	// 4. On place le token dans un cookie sécurisé
+	// 4. On place le token dans un cookie sécurisé avec SameSite=Lax
 	// Signature : SetCookie(name, value, maxAge, path, domain, secure, httpOnly)
 	// maxAge: 86400 secondes = 24 heures
 	// httpOnly (dernier paramètre à true) est VITAL : il empêche le JavaScript côté client de lire le token (protection XSS)
-	c.SetCookie("toxo_session", token, 86400, "/", "", false, true)
-
-	// Note: 'secure' est à false pour fonctionner sur localhost en HTTP.
-	// À passer à true en production si tu utilises HTTPS.
+	// secure est configuré à true (Option B : HTTPS obligatoire partout pour le dev et la prod)
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("toxo_session", token, 86400, "/", "", true, true)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Connexion réussie"})
 }
@@ -58,7 +57,8 @@ func LoginHandler(c *gin.Context) {
 // LogoutHandler permet de détruire la session
 func LogoutHandler(c *gin.Context) {
 	// On écrase le cookie avec une durée de vie négative pour forcer le navigateur à le supprimer
-	c.SetCookie("toxo_session", "", -1, "/", "", false, true)
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("toxo_session", "", -1, "/", "", true, true)
 	c.Header("HX-Redirect", "/login")
 	c.JSON(http.StatusOK, gin.H{"message": "Déconnexion réussie"})
 }
