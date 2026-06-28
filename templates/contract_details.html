@@ -84,7 +84,7 @@
                 {{ end }}
 
                 {{ if .Contract.Limb.NumeroSerie }}
-                    <p><strong>Branches :</strong> {{ .Contract.Limb.Marque }} {{ .Contract.Limb.Modele }} - {{ .Contract.Limb.Taille }} / {{ .Contract.Limb.Puissance }} (N° {{ .Contract.Limb.NumeroSerie }})</p>
+                    <p><strong>Branches :</strong> {{ .Contract.Limb.Marque }} {{ .Contract.Limb.Modele }} - {{ .Contract.Limb.Taille }} / {{ .Contract.Limb.Puissance }} lbs (N° {{ .Contract.Limb.NumeroSerie }})</p>
                 {{ end }}
 
                 {{ if and (not .Contract.Riser.NumeroSerie) (not .Contract.Limb.NumeroSerie) }}
