@@ -4,37 +4,46 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
 func TestEnsureSelfSignedCert(t *testing.T) {
-	// Création d'un dossier temporaire pour les tests de certificats
-	tmpDir, err := os.MkdirTemp("", "toxo_tls_test_*")
-	if err != nil {
-		t.Fatalf("Impossible de créer le dossier temporaire : %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
+	// 1. Sauvegarde des certificats existants éventuels de l'utilisateur
+	backupCert, errCert := os.ReadFile(CertPath)
+	backupKey, errKey := os.ReadFile(KeyPath)
 
-	certPath := filepath.Join(tmpDir, "test_localhost.crt")
-	keyPath := filepath.Join(tmpDir, "test_localhost.key")
+	// On nettoie les fichiers temporairement pour forcer la génération
+	_ = os.Remove(CertPath)
+	_ = os.Remove(KeyPath)
 
-	// 1. Première génération
-	err = EnsureSelfSignedCert(certPath, keyPath)
+	// Au nettoyage de fin de test, on s'assure de restaurer la situation de départ ou de supprimer nos fichiers de test
+	defer func() {
+		_ = os.Remove(CertPath)
+		_ = os.Remove(KeyPath)
+		if errCert == nil {
+			_ = os.WriteFile(CertPath, backupCert, 0600)
+		}
+		if errKey == nil {
+			_ = os.WriteFile(KeyPath, backupKey, 0600)
+		}
+	}()
+
+	// 2. Première génération
+	err := EnsureSelfSignedCert()
 	if err != nil {
 		t.Fatalf("La génération du certificat a échoué : %v", err)
 	}
 
 	// Vérification de l'existence des fichiers
-	if _, err := os.Stat(certPath); os.IsNotExist(err) {
+	if _, err := os.Stat(CertPath); os.IsNotExist(err) {
 		t.Error("Le fichier de certificat n'a pas été créé")
 	}
-	if _, err := os.Stat(keyPath); os.IsNotExist(err) {
+	if _, err := os.Stat(KeyPath); os.IsNotExist(err) {
 		t.Error("Le fichier de clé privée n'a pas été créé")
 	}
 
-	// 2. Lecture et validation du contenu du certificat
-	certBytes, err := os.ReadFile(certPath)
+	// 3. Lecture et validation du contenu du certificat
+	certBytes, err := os.ReadFile(CertPath)
 	if err != nil {
 		t.Fatalf("Impossible de lire le certificat généré : %v", err)
 	}
@@ -53,8 +62,8 @@ func TestEnsureSelfSignedCert(t *testing.T) {
 		t.Errorf("CommonName attendu: localhost, obtenu: %s", cert.Subject.CommonName)
 	}
 
-	// 3. Appel secondaire (ne doit pas régénérer car déjà existant et valide)
-	err = EnsureSelfSignedCert(certPath, keyPath)
+	// 4. Appel secondaire (ne doit pas régénérer car déjà existant et valide)
+	err = EnsureSelfSignedCert()
 	if err != nil {
 		t.Fatalf("Le second appel de vérification a échoué : %v", err)
 	}

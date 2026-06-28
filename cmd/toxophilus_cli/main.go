@@ -103,13 +103,7 @@ func main() {
 		seedData()
 
 	case "generate-certs":
-		certPath := "localhost.crt"
-		keyPath := "localhost.key"
-		if len(os.Args) >= 4 {
-			certPath = os.Args[2]
-			keyPath = os.Args[3]
-		}
-		if err := auth.EnsureSelfSignedCert(certPath, keyPath); err != nil {
+		if err := auth.EnsureSelfSignedCert(); err != nil {
 			log.Fatalf("❌ Erreur lors de la génération des certificats : %v", err)
 		}
 

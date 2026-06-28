@@ -14,19 +14,26 @@ import (
 	"time"
 )
 
-// EnsureSelfSignedCert s'assure qu'un certificat auto-signé valide existe pour localhost.
+// Constantes strictes de chemins pour la génération de certificats TLS en développement local.
+// L'utilisation de constantes fixes évite toute vulnérabilité d'inclusion ou d'injection de chemin (gosec G304).
+const (
+	CertPath = "localhost.crt"
+	KeyPath  = "localhost.key"
+)
+
+// EnsureSelfSignedCert s'assure qu'un certificat auto-signé valide existe pour localhost à la racine.
 // S'il n'existe pas, ou s'il expire dans moins de 30 jours, il est généré/renouvelé automatiquement.
-func EnsureSelfSignedCert(certPath, keyPath string) error {
+func EnsureSelfSignedCert() error {
 	regenerate := false
 
 	// 1. Vérifier si les fichiers existent déjà
-	if _, err := os.Stat(certPath); err != nil {
+	if _, err := os.Stat(CertPath); err != nil {
 		regenerate = true
-	} else if _, err := os.Stat(keyPath); err != nil {
+	} else if _, err := os.Stat(KeyPath); err != nil {
 		regenerate = true
 	} else {
 		// Les fichiers existent, vérifions leur expiration pour un renouvellement automatique
-		certBytes, err := os.ReadFile(certPath)
+		certBytes, err := os.ReadFile(CertPath)
 		if err != nil {
 			regenerate = true
 		} else {
@@ -53,14 +60,14 @@ func EnsureSelfSignedCert(certPath, keyPath string) error {
 
 	fmt.Printf("Generating self-signed TLS certificate for localhost (valid for 1 year)...\n")
 
-	// S'assurer que le dossier parent existe
-	if dir := filepath.Dir(certPath); dir != "." {
-		if err := os.MkdirAll(dir, 0755); err != nil {
+	// S'assurer que le dossier parent existe (avec des permissions restrictives 0700 pour corriger G301)
+	if dir := filepath.Dir(CertPath); dir != "." {
+		if err := os.MkdirAll(dir, 0700); err != nil {
 			return err
 		}
 	}
-	if dir := filepath.Dir(keyPath); dir != "." {
-		if err := os.MkdirAll(dir, 0755); err != nil {
+	if dir := filepath.Dir(KeyPath); dir != "." {
+		if err := os.MkdirAll(dir, 0700); err != nil {
 			return err
 		}
 	}
@@ -103,7 +110,7 @@ func EnsureSelfSignedCert(certPath, keyPath string) error {
 	}
 
 	// 5. Écriture du certificat au format PEM
-	certOut, err := os.Create(certPath)
+	certOut, err := os.Create(CertPath)
 	if err != nil {
 		return err
 	}
@@ -112,8 +119,8 @@ func EnsureSelfSignedCert(certPath, keyPath string) error {
 		return err
 	}
 
-	// 6. Écriture de la clé privée au format PEM (PKCS#8)
-	keyOut, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	// 6. Écriture de la clé privée au format PEM (PKCS#8) avec des permissions restrictives (0600)
+	keyOut, err := os.OpenFile(KeyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
@@ -127,6 +134,6 @@ func EnsureSelfSignedCert(certPath, keyPath string) error {
 		return err
 	}
 
-	fmt.Printf("Successfully generated certificates:\n  Cert: %s\n  Key:  %s\n", certPath, keyPath)
+	fmt.Printf("Successfully generated certificates:\n  Cert: %s\n  Key:  %s\n", CertPath, KeyPath)
 	return nil
 }
