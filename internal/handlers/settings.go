@@ -98,7 +98,7 @@ func (h *SettingHandler) ProcessSettingsSave(c *gin.Context) {
 		// Détection du type MIME réel à partir des 512 premiers octets (magic bytes)
 		buffer := make([]byte, 512)
 		n, err := src.Read(buffer)
-		src.Close() // On ferme le flux immédiatement après lecture
+		_ = src.Close() // On ferme le flux immédiatement après lecture
 		if err != nil && err != io.EOF {
 			settingsList, _ := h.repo.GetAll()
 			settingsMap := make(map[string]string)
