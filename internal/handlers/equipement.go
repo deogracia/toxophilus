@@ -27,50 +27,62 @@ func NewEquipementHandler(riserRepo models.RiserRepository, limbRepo models.Limb
 // --- REQUÊTES ---
 
 type CreateRiserRequest struct {
-	NumeroSerie string `json:"numero_serie" binding:"required"`
-	Marque      string `json:"marque" binding:"required"`
-	Modele      string `json:"modele"`
-	Taille      string `json:"taille"`
-	Lateralite  string `json:"lateralite"` // "Droitier" ou "Gaucher"
-	Couleur     string `json:"couleur"`
-	AnneeAchat  string `json:"annee_achat"`
-	Prix        string `json:"prix"`
+	NumeroSerie    string `json:"numero_serie" binding:"required"`
+	Marque         string `json:"marque" binding:"required"`
+	Modele         string `json:"modele"`
+	Taille         string `json:"taille"`
+	Lateralite     string `json:"lateralite"` // "Droitier" ou "Gaucher"
+	Couleur        string `json:"couleur"`
+	AnneeAchat     string `json:"annee_achat"`
+	DateInventaire string `json:"date_inventaire"`
+	Prix           string `json:"prix"`
 }
 
 type CreateLimbRequest struct {
-	NumeroSerie string `json:"numero_serie" binding:"required"`
-	Marque      string `json:"marque" binding:"required"`
-	Modele      string `json:"modele"`
-	Taille      string `json:"taille"`
-	Puissance   string `json:"puissance"` // ex: "24#"
-	Commentaire string `json:"commentaire"`
-	AnneeAchat  string `json:"annee_achat"`
-	Prix        string `json:"prix"`
+	NumeroSerie    string `json:"numero_serie" binding:"required"`
+	Marque         string `json:"marque" binding:"required"`
+	Modele         string `json:"modele"`
+	Taille         string `json:"taille"`
+	Puissance      string `json:"puissance"` // ex: "24#"
+	Commentaire    string `json:"commentaire"`
+	AnneeAchat     string `json:"annee_achat"`
+	DateInventaire string `json:"date_inventaire"`
+	Prix           string `json:"prix"`
 }
 
-func parseEquipementFields(anneeStr string, prixStr string) (anneeAchat int, prix float64, err error) {
-	// Gestion des champs AnneeAchat et prix de la requêtte -> la bdd
+func parseEquipementFields(anneeStr string, dateInventaireStr string, prixStr string) (anneeAchat int, DateInventaire int, prix float64, err error) {
+	// Gestion des champs AnneeAchat, DateInventaire et prix de la requêtte -> la bdd
 	// 1. Gestion de AnneeAchat, string -> int
 	anneeInt := 0
 	if anneeStr != "" {
 		var err error
 		anneeInt, err = strconv.Atoi(anneeStr)
 		if err != nil {
-			return 0, 0.0, errors.New("Erreur de conversion: l'année d'achat doit être un nombre entier valide.")
+			return 0, 0, 0.0, errors.New("Erreur de conversion: AnneeAchat - l'année d'achat doit être un nombre entier valide.")
 		}
 	}
 
-	// 2. gestion de Prix, string -> float64
+	// 2. Gestion de AnneeAchat, string -> int
+	dateInventaireInt := 0
+	if dateInventaireStr != "" {
+		var err error
+		dateInventaireInt, err = strconv.Atoi(dateInventaireStr)
+		if err != nil {
+			return 0, 0, 0.0, errors.New("Erreur de conversion: DateInventaire - l'année d'achat doit être un nombre entier valide.")
+		}
+	}
+
+	// 3. gestion de Prix, string -> float64
 	prixFloat := 0.0
 	if prixStr != "" {
 		var err error
 		prixFloat, err = strconv.ParseFloat(prixStr, 64)
 		if err != nil {
-			return 0, 0.0, errors.New("Erreur de conversion: le prix doit être un montant valide (ex: 153.52).")
+			return 0, 0, 0.0, errors.New("Erreur de conversion: Prix - le prix doit être un montant valide (ex: 153.52).")
 		}
 	}
 
-	return anneeInt, prixFloat, nil
+	return anneeInt, dateInventaireInt, prixFloat, nil
 }
 
 // --- POIGNÉES (RISERS) ---
@@ -82,27 +94,29 @@ func (h *EquipementHandler) CreateRiser(c *gin.Context) {
 		return
 	}
 	var (
-		anneeInt  int     = 0
-		prixFloat float64 = 0.0
-		err       error   = nil
+		anneeInt          int     = 0
+		dateInventaireInt int     = 0
+		prixFloat         float64 = 0.0
+		err               error   = nil
 	)
 
-	anneeInt, prixFloat, err = parseEquipementFields(req.AnneeAchat, req.Prix)
+	anneeInt, dateInventaireInt, prixFloat, err = parseEquipementFields(req.AnneeAchat, req.DateInventaire, req.Prix)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	riser := models.Riser{
-		NumeroSerie:   req.NumeroSerie,
-		Marque:        req.Marque,
-		Modele:        req.Modele,
-		Taille:        req.Taille,
-		Lateralite:    req.Lateralite,
-		Couleur:       req.Couleur,
-		AnneeAchat:    anneeInt,
-		Prix:          prixFloat,
-		Disponibilite: true, // Par défaut, un matériel neuf est disponible !
+		NumeroSerie:    req.NumeroSerie,
+		Marque:         req.Marque,
+		Modele:         req.Modele,
+		Taille:         req.Taille,
+		Lateralite:     req.Lateralite,
+		Couleur:        req.Couleur,
+		AnneeAchat:     anneeInt,
+		DateInventaire: dateInventaireInt,
+		Prix:           prixFloat,
+		Disponibilite:  true, // Par défaut, un matériel neuf est disponible !
 	}
 
 	if err := h.riserRepo.Create(&riser); err != nil {
@@ -143,12 +157,13 @@ func (h *EquipementHandler) UpdateRiser(c *gin.Context) {
 	}
 
 	var (
-		anneeInt  int     = 0
-		prixFloat float64 = 0.0
-		errConv   error   = nil
+		anneeInt          int     = 0
+		dateInventaireInt         = 0
+		prixFloat         float64 = 0.0
+		errConv           error   = nil
 	)
 
-	anneeInt, prixFloat, errConv = parseEquipementFields(req.AnneeAchat, req.Prix)
+	anneeInt, dateInventaireInt, prixFloat, errConv = parseEquipementFields(req.AnneeAchat, req.DateInventaire, req.Prix)
 	if errConv != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": errConv.Error()})
 		return
@@ -161,6 +176,7 @@ func (h *EquipementHandler) UpdateRiser(c *gin.Context) {
 	riser.Lateralite = req.Lateralite
 	riser.Couleur = req.Couleur
 	riser.AnneeAchat = anneeInt
+	riser.DateInventaire = dateInventaireInt
 	riser.Prix = prixFloat
 
 	if err := h.riserRepo.Update(riser); err != nil {
@@ -258,27 +274,29 @@ func (h *EquipementHandler) CreateLimb(c *gin.Context) {
 	}
 
 	var (
-		anneeInt  int     = 0
-		prixFloat float64 = 0.0
-		err       error   = nil
+		anneeInt          int     = 0
+		dateInventaireInt int     = 0
+		prixFloat         float64 = 0.0
+		err               error   = nil
 	)
 
-	anneeInt, prixFloat, err = parseEquipementFields(req.AnneeAchat, req.Prix)
+	anneeInt, dateInventaireInt, prixFloat, err = parseEquipementFields(req.AnneeAchat, req.DateInventaire, req.Prix)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	limb := models.Limb{
-		NumeroSerie:   req.NumeroSerie,
-		Marque:        req.Marque,
-		Modele:        req.Modele,
-		Taille:        req.Taille,
-		Puissance:     req.Puissance,
-		Commentaire:   req.Commentaire,
-		AnneeAchat:    anneeInt,
-		Prix:          prixFloat,
-		Disponibilite: true,
+		NumeroSerie:    req.NumeroSerie,
+		Marque:         req.Marque,
+		Modele:         req.Modele,
+		Taille:         req.Taille,
+		Puissance:      req.Puissance,
+		Commentaire:    req.Commentaire,
+		AnneeAchat:     anneeInt,
+		DateInventaire: dateInventaireInt,
+		Prix:           prixFloat,
+		Disponibilite:  true,
 	}
 
 	if err := h.limbRepo.Create(&limb); err != nil {
@@ -319,12 +337,13 @@ func (h *EquipementHandler) UpdateLimb(c *gin.Context) {
 	}
 
 	var (
-		anneeInt  int     = 0
-		prixFloat float64 = 0.0
-		errConv   error   = nil
+		anneeInt          int     = 0
+		dateInventaireInt int     = 0
+		prixFloat         float64 = 0.0
+		errConv           error   = nil
 	)
 
-	anneeInt, prixFloat, errConv = parseEquipementFields(req.AnneeAchat, req.Prix)
+	anneeInt, dateInventaireInt, prixFloat, errConv = parseEquipementFields(req.AnneeAchat, req.DateInventaire, req.Prix)
 	if errConv != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": errConv.Error()})
 		return
@@ -337,6 +356,7 @@ func (h *EquipementHandler) UpdateLimb(c *gin.Context) {
 	limb.Puissance = req.Puissance
 	limb.Commentaire = req.Commentaire
 	limb.AnneeAchat = anneeInt
+	limb.DateInventaire = dateInventaireInt
 	limb.Prix = prixFloat
 
 	if err := h.limbRepo.Update(limb); err != nil {

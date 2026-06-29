@@ -57,6 +57,14 @@
                                         max="2500"
                                         step="1">
                                 </label>
+                                <label>Année d'inventaire
+                                    <input type="number"
+                                        name="date_inventaire"
+                                        placeholder="AAAA, soit l'année sur 4 chiffres"
+                                        min="1970"
+                                        max="2500"
+                                        step="1">
+                                </label>
                                 <label>Prix d'achat (€)
                                     <input type="number"
                                         name="prix"
@@ -78,6 +86,7 @@
                                     <th>Modèle</th>
                                     <th>Latéralité</th>
                                     <th>Taille</th>
+                                    <th>Inventaire</th>
                                     <th>Prix</th>
                                     <th>Actions</th>
                                 </tr>
@@ -89,6 +98,7 @@
                                     <td>{{ .Marque }} {{ .Modele }}</td>
                                     <td>{{ .Lateralite }}</td>
                                     <td>{{ .Taille }}</td>
+                                    <td>{{ if ne .DateInventaire 0 }}{{ .DateInventaire }}{{ else }}--{{ end }}</td>
                                     <td>{{ if ne .Prix 0.0 }}{{ printf "%.2f €" .Prix }}{{ else }}--{{ end }}</td>
                                     <td>
                                         <div class="table-actions">
@@ -106,7 +116,7 @@
                                     </td>
                                 </tr>
                                 {{ else }}
-                                <tr><td colspan="6" class="text-center">Aucune poignée en stock.</td></tr>
+                                <tr><td colspan="7" class="text-center">Aucune poignée en stock.</td></tr>
                                 {{ end }}
                             </tbody>
                         </table>
@@ -147,6 +157,14 @@
                                         max="2500"
                                         step="1">
                                 </label>
+                                <label>Année d'inventaire
+                                    <input type="number"
+                                        name="date_inventaire"
+                                        placeholder="AAAA, soit l'année sur 4 chiffres"
+                                        min="1970"
+                                        max="2500"
+                                        step="1">
+                                </label>
                                 <label>Prix d'achat (€)
                                     <input type="number"
                                         name="prix"
@@ -168,6 +186,7 @@
                                     <th>Modèle</th>
                                     <th>Puissance</th>
                                     <th>Taille</th>
+                                    <th>Inventaire</th>
                                     <th>Prix</th>
                                     <th>Actions</th>
                                 </tr>
@@ -179,6 +198,7 @@
                                     <td>{{ .Marque }} {{ .Modele }}</td>
                                     <td>{{ .Puissance }} lbs</td>
                                     <td>{{ .Taille }}</td>
+                                    <td>{{ if ne .DateInventaire 0 }}{{ .DateInventaire }}{{ else }}--{{ end }}</td>
                                     <td>{{ if ne .Prix 0.0 }}{{ printf "%.2f €" .Prix }}{{ else }}--{{ end }}</td>
                                     <td>
                                         <div class="table-actions">
@@ -196,7 +216,7 @@
                                     </td>
                                 </tr>
                                 {{ else }}
-                                <tr><td colspan="6" class="text-center">Aucune branche en stock.</td></tr>
+                                <tr><td colspan="7" class="text-center">Aucune branche en stock.</td></tr>
                                 {{ end }}
                             </tbody>
                         </table>
