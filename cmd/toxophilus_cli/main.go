@@ -31,27 +31,29 @@ type SeedMember struct {
 }
 
 type SeedRiser struct {
-	NumeroSerie   string  `json:"numero_serie"`
-	Marque        string  `json:"marque"`
-	Modele        string  `json:"modele"`
-	Taille        string  `json:"taille"`
-	Lateralite    string  `json:"lateralite"`
-	Couleur       string  `json:"couleur"`
-	Disponibilite bool    `json:"disponibilite"`
-	AnneeAchat    int     `json:"annee_achat"`
-	Prix          float64 `json:"prix"`
+	NumeroSerie    string  `json:"numero_serie"`
+	Marque         string  `json:"marque"`
+	Modele         string  `json:"modele"`
+	Taille         string  `json:"taille"`
+	Lateralite     string  `json:"lateralite"`
+	Couleur        string  `json:"couleur"`
+	Disponibilite  bool    `json:"disponibilite"`
+	AnneeAchat     int     `json:"annee_achat"`
+	DateInventaire int     `json:"date_inventaire"`
+	Prix           float64 `json:"prix"`
 }
 
 type SeedLimb struct {
-	NumeroSerie   string  `json:"numero_serie"`
-	Marque        string  `json:"marque"`
-	Modele        string  `json:"modele"`
-	Taille        string  `json:"taille"`
-	Puissance     string  `json:"puissance"`
-	Disponibilite bool    `json:"disponibilite"`
-	Commentaire   string  `json:"commentaire"`
-	AnneeAchat    int     `json:"annee_achat"`
-	Prix          float64 `json:"prix"`
+	NumeroSerie    string  `json:"numero_serie"`
+	Marque         string  `json:"marque"`
+	Modele         string  `json:"modele"`
+	Taille         string  `json:"taille"`
+	Puissance      string  `json:"puissance"`
+	Disponibilite  bool    `json:"disponibilite"`
+	Commentaire    string  `json:"commentaire"`
+	AnneeAchat     int     `json:"annee_achat"`
+	DateInventaire int     `json:"date_inventaire"`
+	Prix           float64 `json:"prix"`
 }
 
 type SeedData struct {
@@ -188,15 +190,16 @@ func seedData() {
 		err := database.DB.Where("numero_serie = ?", sr.NumeroSerie).First(&existing).Error
 		if err != nil {
 			r := models.Riser{
-				NumeroSerie:   sr.NumeroSerie,
-				Marque:        sr.Marque,
-				Modele:        sr.Modele,
-				Taille:        sr.Taille,
-				Lateralite:    sr.Lateralite,
-				Couleur:       sr.Couleur,
-				Disponibilite: sr.Disponibilite,
-				AnneeAchat:    sr.AnneeAchat,
-				Prix:          sr.Prix,
+				NumeroSerie:    sr.NumeroSerie,
+				Marque:         sr.Marque,
+				Modele:         sr.Modele,
+				Taille:         sr.Taille,
+				Lateralite:     sr.Lateralite,
+				Couleur:        sr.Couleur,
+				Disponibilite:  sr.Disponibilite,
+				AnneeAchat:     sr.AnneeAchat,
+				DateInventaire: sr.DateInventaire,
+				Prix:           sr.Prix,
 			}
 			if err := database.DB.Create(&r).Error; err != nil {
 				log.Fatalf("❌ Impossible de créer la poignée %s : %v", sr.NumeroSerie, err)
@@ -216,15 +219,16 @@ func seedData() {
 		err := database.DB.Where("numero_serie = ?", sl.NumeroSerie).First(&existing).Error
 		if err != nil {
 			l := models.Limb{
-				NumeroSerie:   sl.NumeroSerie,
-				Marque:        sl.Marque,
-				Modele:        sl.Modele,
-				Taille:        sl.Taille,
-				Puissance:     sl.Puissance,
-				Disponibilite: sl.Disponibilite,
-				Commentaire:   sl.Commentaire,
-				AnneeAchat:    sl.AnneeAchat,
-				Prix:          sl.Prix,
+				NumeroSerie:    sl.NumeroSerie,
+				Marque:         sl.Marque,
+				Modele:         sl.Modele,
+				Taille:         sl.Taille,
+				Puissance:      sl.Puissance,
+				Disponibilite:  sl.Disponibilite,
+				Commentaire:    sl.Commentaire,
+				AnneeAchat:     sl.AnneeAchat,
+				DateInventaire: sl.DateInventaire,
+				Prix:           sl.Prix,
 			}
 			if err := database.DB.Create(&l).Error; err != nil {
 				log.Fatalf("❌ Impossible de créer les branches %s : %v", sl.NumeroSerie, err)

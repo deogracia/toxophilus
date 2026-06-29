@@ -48,15 +48,16 @@ type MemberRepository interface {
 // Limb représente les branches d'un arc
 type Limb struct {
 	gorm.Model
-	NumeroSerie   string `gorm:"uniqueIndex"`
-	Marque        string
-	Modele        string
-	Taille        string
-	Puissance     string
-	Disponibilite bool `gorm:"default:true"`
-	Commentaire   string
-	AnneeAchat    int
-	Prix          float64
+	NumeroSerie    string `gorm:"uniqueIndex"`
+	Marque         string
+	Modele         string
+	Taille         string
+	Puissance      string
+	Disponibilite  bool `gorm:"default:true"`
+	Commentaire    string
+	AnneeAchat     int
+	DateInventaire int
+	Prix           float64
 }
 
 // LimbRepository définit l'interface de stockage pour les branches.
@@ -75,15 +76,16 @@ type LimbRepository interface {
 // Riser représente la poignée d'un arc
 type Riser struct {
 	gorm.Model
-	NumeroSerie   string `gorm:"uniqueIndex"`
-	Marque        string
-	Modele        string
-	Taille        string
-	Lateralite    string
-	Couleur       string
-	Disponibilite bool `gorm:"default:true"`
-	AnneeAchat    int
-	Prix          float64
+	NumeroSerie    string `gorm:"uniqueIndex"`
+	Marque         string
+	Modele         string
+	Taille         string
+	Lateralite     string
+	Couleur        string
+	Disponibilite  bool `gorm:"default:true"`
+	AnneeAchat     int
+	DateInventaire int
+	Prix           float64
 }
 
 // RiserRepository définit l'interface de stockage pour les poignées.

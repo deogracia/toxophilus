@@ -59,6 +59,7 @@
       "couleur": "Rouge",
       "disponibilite": true,
       "annee_achat": 2026,
+      "date_inventaire": 2026,
       "prix": 850.0
     },
     {
@@ -70,17 +71,19 @@
       "couleur": "Bleu",
       "disponibilite": true,
       "annee_achat": 2025,
+      "date_inventaire": 2026,
       "prix": 189.0
     },
     {
-      "numero_serie": "P-KINETIC-2026",
+      "numero_serie": "P-KINETIC-2020",
       "marque": "Kinetic",
       "modele": "Vygo",
       "taille": "25 pouces",
       "lateralite": "Droitier",
       "couleur": "Noir",
       "disponibilite": true,
-      "annee_achat": 2026,
+      "annee_achat": 2020,
+      "date_inventaire": 2026,
       "prix": 149.0
     }
   ],
@@ -94,6 +97,7 @@
       "disponibilite": true,
       "commentaire": "Très bon état",
       "annee_achat": 2026,
+      "date_inventaire": 2026,
       "prix": 380.0
     },
     {
@@ -105,17 +109,19 @@
       "disponibilite": true,
       "commentaire": "Initiation",
       "annee_achat": 2025,
+      "date_inventaire": 2026,
       "prix": 99.0
     },
     {
-      "numero_serie": "B-WNS-2026",
+      "numero_serie": "B-WNS-2021",
       "marque": "WNS",
       "modele": "Explore W1",
       "taille": "68 pouces",
       "puissance": "20",
       "disponibilite": true,
       "commentaire": "Idéal débutant",
-      "annee_achat": 2026,
+      "annee_achat": 2021,
+      "date_inventaire": 2026,
       "prix": 85.0
     }
   ],
