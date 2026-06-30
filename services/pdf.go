@@ -198,6 +198,14 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 			})
 		})
 	}
+	if contract.Accessoires != "" {
+		hasEquipment = true
+		m.Row(5, func() {
+			m.Col(12, func() {
+				m.Text(fmt.Sprintf("Accessoires : %s", contract.Accessoires), props.Text{Size: 8})
+			})
+		})
+	}
 	if !hasEquipment {
 		m.Row(5, func() {
 			m.Col(12, func() {
