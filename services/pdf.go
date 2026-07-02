@@ -3,6 +3,8 @@ package services
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/deogracia/toxophilus/models"
@@ -10,6 +12,7 @@ import (
 	"github.com/johnfercher/maroto/pkg/consts"
 	"github.com/johnfercher/maroto/pkg/pdf"
 	"github.com/johnfercher/maroto/pkg/props"
+	"github.com/spf13/viper"
 )
 
 // renderRichText décode et affiche un texte avec une mise en forme par mot / ligne :
@@ -284,11 +287,18 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 		})
 	})
 
+	pdfDir := viper.GetString("app.pdf_dir")
+	if pdfDir == "" {
+		pdfDir = "data/pdf"
+	}
+	_ = os.MkdirAll(pdfDir, 0750)
+
 	filename := fmt.Sprintf("Contrat-N°%d-%s-%s-%s.pdf", contract.ID, contract.Member.Nom, contract.Member.Prenom, contract.DateDebut.Format("2006-01-02"))
-	err := m.OutputFileAndClose(filename)
+	fullPath := filepath.Join(pdfDir, filename)
+	err := m.OutputFileAndClose(fullPath)
 	if err != nil {
 		return "", err
 	}
 
-	return filename, nil
+	return fullPath, nil
 }
