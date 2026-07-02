@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -287,7 +288,7 @@ func (h *ContractHandler) DownloadContractPDF(c *gin.Context) {
 		return
 	}
 
-	c.FileAttachment(filename, filename)
+	c.FileAttachment(filename, filepath.Base(filename))
 }
 
 // UpdateContractStatus modifie l'état d'un contrat via HTMX

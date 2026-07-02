@@ -2,11 +2,18 @@
 port = 8080
 env = "production"
 secret_key = "cle_super_secrete_pour_les_sessions_qui_fait_plus_de_32_caracteres"
-upload_dir = "data/uploads"
+
+# Dossier racine pour stocker toutes les données par défaut (base SQLite, uploads, pdfs...)
+data_dir = "data"
+
+# Chemins de stockage optionnels (s'ils ne sont pas configurés, ils sont créés sous 'data_dir')
+# upload_dir = "data/uploads"
+# pdf_dir = "data/pdf"
 
 [database]
 driver = "sqlite"
-dsn = "club_archerie.db"
+# Le chemin du fichier SQLite. Si vide ou absent, il sera stocké par défaut dans [app.data_dir]/toxophilus.db
+# dsn = "data/club_archerie.db"
 
 [log]
 # Niveau de verbosité : "debug", "info", "warn" ou "error"

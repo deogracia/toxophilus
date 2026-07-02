@@ -9,6 +9,7 @@ import (
 	"github.com/deogracia/toxophilus/config"
 	"github.com/deogracia/toxophilus/models"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 // SettingHandler gère les requêtes HTTP pour les réglages métiers.
@@ -132,8 +133,8 @@ func (h *SettingHandler) ProcessSettingsSave(c *gin.Context) {
 			return
 		}
 
-		// Étape Open Source essentielle : on crée un dossier "data/uploads" à la racine de l'exécution
-		uploadDir := filepath.Join("data", "uploads")
+		// Étape Open Source essentielle : on crée le dossier d'uploads configuré
+		uploadDir := viper.GetString("app.upload_dir")
 		_ = os.MkdirAll(uploadDir, 0750)
 
 		// On forge le nom du fichier (on garde son extension d'origine .jpg ou .png)
