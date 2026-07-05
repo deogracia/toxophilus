@@ -42,7 +42,7 @@
                         <div class="grid">
                             <label>
                                 Email
-                                <input type="email" name="email">
+                                <input type="email" name="email" required>
                             </label>
                             <label>
                                 Téléphone
@@ -50,10 +50,126 @@
                             </label>
                         </div>
 
+                        <!-- Section Autorité Parentale et Émancipation (Dynamique pour les mineurs) -->
+                        <div id="minor-section" style="display: none; border-left: 3px solid #10ad67; padding-left: 15px; margin-bottom: 20px;">
+                            <fieldset style="margin-bottom: 10px;">
+                                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                    <input type="checkbox" name="est_emancipe" id="est_emancipe" value="true" style="margin-bottom: 0;">
+                                    <strong>Cet archer mineur est émancipé</strong>
+                                </label>
+                            </fieldset>
+
+                            <div id="parental-authority-fields">
+                                <legend style="margin-bottom: 10px;"><strong>👪 Autorité Parentale (Obligatoire pour les mineurs)</strong></legend>
+                                <div class="grid">
+                                    <label>
+                                        Nom du représentant légal
+                                        <input type="text" name="parent_nom" id="parent_nom">
+                                    </label>
+                                    <label>
+                                        Prénom du représentant légal
+                                        <input type="text" name="parent_prenom" id="parent_prenom">
+                                    </label>
+                                </div>
+                                <div class="grid">
+                                    <label>
+                                        Relation (ex: Père, Mère, Tuteur)
+                                        <input type="text" name="parent_relation" id="parent_relation" placeholder="Père, Mère, Tuteur...">
+                                    </label>
+                                    <label>
+                                        Email du représentant
+                                        <input type="email" name="parent_email" id="parent_email">
+                                    </label>
+                                    <label>
+                                        Téléphone du représentant
+                                        <input type="tel" name="parent_telephone" id="parent_telephone">
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="emancipation-fields" style="display: none;">
+                                <legend style="margin-bottom: 10px;"><strong>⚖️ Émancipation (Obligatoire)</strong></legend>
+                                <label>
+                                    Référence de la décision de justice d'émancipation
+                                    <input type="text" name="reference_emancipation" id="reference_emancipation" placeholder="Ex: Décision du tribunal de grande instance du...">
+                                </label>
+                            </div>
+                        </div>
+
                         <div id="form-error" class="error-box"></div>
 
                         <button type="submit">Enregistrer l'archer</button>
                     </form>
+
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function() {
+                            const dateBirthInput = document.querySelector('input[name="date_naissance"]');
+                            const minorSection = document.getElementById('minor-section');
+                            const estEmancipeCheckbox = document.getElementById('est_emancipe');
+                            const parentalFields = document.getElementById('parental-authority-fields');
+                            const emancipationFields = document.getElementById('emancipation-fields');
+
+                            // Parental inputs
+                            const parentNom = document.getElementById('parent_nom');
+                            const parentPrenom = document.getElementById('parent_prenom');
+                            const parentRelation = document.getElementById('parent_relation');
+                            const parentEmail = document.getElementById('parent_email');
+                            const parentTelephone = document.getElementById('parent_telephone');
+
+                            // Emancipation inputs
+                            const referenceEmancipation = document.getElementById('reference_emancipation');
+
+                            function calculateAge(birthDateString) {
+                                if (!birthDateString) return null;
+                                const today = new Date();
+                                const birthDate = new Date(birthDateString);
+                                let age = today.getFullYear() - birthDate.getFullYear();
+                                const m = today.getMonth() - birthDate.getMonth();
+                                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                                    age--;
+                                }
+                                return age;
+                            }
+
+                            function toggleFields() {
+                                const age = calculateAge(dateBirthInput.value);
+                                if (age !== null && age < 18) {
+                                    minorSection.style.display = "block";
+                                    if (estEmancipeCheckbox.checked) {
+                                        parentalFields.style.display = "none";
+                                        emancipationFields.style.display = "block";
+                                        
+                                        // Update required attributes
+                                        parentNom.required = false;
+                                        parentPrenom.required = false;
+                                        parentRelation.required = false;
+                                        referenceEmancipation.required = true;
+                                    } else {
+                                        parentalFields.style.display = "block";
+                                        emancipationFields.style.display = "none";
+
+                                        // Update required attributes
+                                        parentNom.required = true;
+                                        parentPrenom.required = true;
+                                        parentRelation.required = true;
+                                        referenceEmancipation.required = false;
+                                    }
+                                } else {
+                                    minorSection.style.display = "none";
+                                    parentalFields.style.display = "none";
+                                    emancipationFields.style.display = "none";
+
+                                    parentNom.required = false;
+                                    parentPrenom.required = false;
+                                    parentRelation.required = false;
+                                    referenceEmancipation.required = false;
+                                }
+                            }
+
+                            dateBirthInput.addEventListener("change", toggleFields);
+                            estEmancipeCheckbox.addEventListener("change", toggleFields);
+                        });
+                    </script>
                 </article>
             </details>
             

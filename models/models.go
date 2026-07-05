@@ -17,17 +17,39 @@ type User struct {
 // Member représente une personne louant du matériel
 type Member struct {
 	gorm.Model
-	CodeAdherent  string `gorm:"uniqueIndex"`
-	Nom           string
-	Prenom        string
-	DateNaissance time.Time
-	Email         string
-	Telephone     string
-	NumeroRue     string
-	Rue           string
-	Ville         string
-	CodePostal    string
-	Contracts     []Contract
+	CodeAdherent          string `gorm:"uniqueIndex"`
+	Nom                   string
+	Prenom                string
+	DateNaissance         time.Time
+	Email                 string
+	Telephone             string
+	NumeroRue             string
+	Rue                   string
+	Ville                 string
+	CodePostal            string
+	ParentNom             string
+	ParentPrenom          string
+	ParentTelephone       string
+	ParentEmail           string
+	ParentRelation        string
+	EstEmancipe           bool
+	ReferenceEmancipation string
+	Contracts             []Contract
+}
+
+// IsMinor indique si l'adhérent a moins de 18 ans
+func (m *Member) IsMinor() bool {
+	now := time.Now()
+	age := now.Year() - m.DateNaissance.Year()
+	if now.Month() < m.DateNaissance.Month() || (now.Month() == m.DateNaissance.Month() && now.Day() < m.DateNaissance.Day()) {
+		age--
+	}
+	return age < 18
+}
+
+// NeedsParentalAuthorization indique si l'adhérent requiert une autorité parentale (mineur non émancipé)
+func (m *Member) NeedsParentalAuthorization() bool {
+	return m.IsMinor() && !m.EstEmancipe
 }
 
 // MemberRepository définit l'interface de stockage pour les adhérents.
