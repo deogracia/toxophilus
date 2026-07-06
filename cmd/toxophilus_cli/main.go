@@ -18,16 +18,23 @@ import (
 var seedJSON []byte
 
 type SeedMember struct {
-	CodeAdherent  string    `json:"code_adherent"`
-	Nom           string    `json:"nom"`
-	Prenom        string    `json:"prenom"`
-	DateNaissance time.Time `json:"date_naissance"`
-	Email         string    `json:"email"`
-	Telephone     string    `json:"telephone"`
-	NumeroRue     string    `json:"numero_rue"`
-	Rue           string    `json:"rue"`
-	Ville         string    `json:"ville"`
-	CodePostal    string    `json:"code_postal"`
+	CodeAdherent          string    `json:"code_adherent"`
+	Nom                   string    `json:"nom"`
+	Prenom                string    `json:"prenom"`
+	DateNaissance         time.Time `json:"date_naissance"`
+	Email                 string    `json:"email"`
+	Telephone             string    `json:"telephone"`
+	NumeroRue             string    `json:"numero_rue"`
+	Rue                   string    `json:"rue"`
+	Ville                 string    `json:"ville"`
+	CodePostal            string    `json:"code_postal"`
+	ParentNom             string    `json:"parent_nom"`
+	ParentPrenom          string    `json:"parent_prenom"`
+	ParentTelephone       string    `json:"parent_telephone"`
+	ParentEmail           string    `json:"parent_email"`
+	ParentRelation        string    `json:"parent_relation"`
+	EstEmancipe           bool      `json:"est_emancipe"`
+	ReferenceEmancipation string    `json:"reference_emancipation"`
 }
 
 type SeedRiser struct {
@@ -161,16 +168,23 @@ func seedData() {
 		err := database.DB.Where("code_adherent = ?", sm.CodeAdherent).First(&existing).Error
 		if err != nil {
 			m := models.Member{
-				CodeAdherent:  sm.CodeAdherent,
-				Nom:           sm.Nom,
-				Prenom:        sm.Prenom,
-				DateNaissance: sm.DateNaissance,
-				Email:         sm.Email,
-				Telephone:     sm.Telephone,
-				NumeroRue:     sm.NumeroRue,
-				Rue:           sm.Rue,
-				Ville:         sm.Ville,
-				CodePostal:    sm.CodePostal,
+				CodeAdherent:          sm.CodeAdherent,
+				Nom:                   sm.Nom,
+				Prenom:                sm.Prenom,
+				DateNaissance:         sm.DateNaissance,
+				Email:                 sm.Email,
+				Telephone:             sm.Telephone,
+				NumeroRue:             sm.NumeroRue,
+				Rue:                   sm.Rue,
+				Ville:                 sm.Ville,
+				CodePostal:            sm.CodePostal,
+				ParentNom:             sm.ParentNom,
+				ParentPrenom:          sm.ParentPrenom,
+				ParentTelephone:       sm.ParentTelephone,
+				ParentEmail:           sm.ParentEmail,
+				ParentRelation:        sm.ParentRelation,
+				EstEmancipe:           sm.EstEmancipe,
+				ReferenceEmancipation: sm.ReferenceEmancipation,
 			}
 			if err := database.DB.Create(&m).Error; err != nil {
 				log.Fatalf("❌ Impossible de créer le membre %s : %v", sm.CodeAdherent, err)
