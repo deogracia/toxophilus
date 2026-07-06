@@ -23,16 +23,23 @@ func NewMemberHandler(repo models.MemberRepository) *MemberHandler {
 
 // CreateMemberRequest définit ce qu'on attend du formulaire (Postman/Frontend)
 type CreateMemberRequest struct {
-	CodeAdherent  string `json:"code_adherent" binding:"required"`
-	Nom           string `json:"nom" binding:"required"`
-	Prenom        string `json:"prenom" binding:"required"`
-	DateNaissance string `json:"date_naissance" binding:"required"` // Attendu: AAAA-MM-JJ
-	Email         string `json:"email" binding:"required,email"`
-	Telephone     string `json:"telephone"`
-	NumeroRue     string `json:"numero_rue"`
-	Rue           string `json:"rue"`
-	Ville         string `json:"ville"`
-	CodePostal    string `json:"code_postal"`
+	CodeAdherent          string `json:"code_adherent" binding:"required"`
+	Nom                   string `json:"nom" binding:"required"`
+	Prenom                string `json:"prenom" binding:"required"`
+	DateNaissance         string `json:"date_naissance" binding:"required"` // Attendu: AAAA-MM-JJ
+	Email                 string `json:"email" binding:"required,email"`
+	Telephone             string `json:"telephone"`
+	NumeroRue             string `json:"numero_rue"`
+	Rue                   string `json:"rue"`
+	Ville                 string `json:"ville"`
+	CodePostal            string `json:"code_postal"`
+	ParentNom             string `json:"parent_nom"`
+	ParentPrenom          string `json:"parent_prenom"`
+	ParentTelephone       string `json:"parent_telephone"`
+	ParentEmail           string `json:"parent_email"`
+	ParentRelation        string `json:"parent_relation"`
+	EstEmancipe           bool   `json:"est_emancipe"`
+	ReferenceEmancipation string `json:"reference_emancipation"`
 }
 
 // CreateMember ajoute un nouvel adhérent dans la base
@@ -51,16 +58,41 @@ func (h *MemberHandler) CreateMember(c *gin.Context) {
 	}
 
 	member := models.Member{
-		CodeAdherent:  req.CodeAdherent,
-		Nom:           req.Nom,
-		Prenom:        req.Prenom,
-		DateNaissance: dateNaissance,
-		Email:         req.Email,
-		Telephone:     req.Telephone,
-		NumeroRue:     req.NumeroRue,
-		Rue:           req.Rue,
-		Ville:         req.Ville,
-		CodePostal:    req.CodePostal,
+		CodeAdherent:          req.CodeAdherent,
+		Nom:                   req.Nom,
+		Prenom:                req.Prenom,
+		DateNaissance:         dateNaissance,
+		Email:                 req.Email,
+		Telephone:             req.Telephone,
+		NumeroRue:             req.NumeroRue,
+		Rue:                   req.Rue,
+		Ville:                 req.Ville,
+		CodePostal:            req.CodePostal,
+		ParentNom:             req.ParentNom,
+		ParentPrenom:          req.ParentPrenom,
+		ParentTelephone:       req.ParentTelephone,
+		ParentEmail:           req.ParentEmail,
+		ParentRelation:        req.ParentRelation,
+		EstEmancipe:           req.EstEmancipe,
+		ReferenceEmancipation: req.ReferenceEmancipation,
+	}
+
+	// Validation de l'autorité parentale pour les mineurs non émancipés
+	if member.NeedsParentalAuthorization() {
+		if member.ParentNom == "" || member.ParentPrenom == "" || member.ParentRelation == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Les informations du représentant légal (Nom, Prénom, Relation) sont requises pour un mineur."})
+			return
+		}
+		if member.ParentEmail == "" && member.ParentTelephone == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Au moins un contact (Email ou Téléphone) pour le représentant légal est requis."})
+			return
+		}
+	} else if member.IsMinor() && member.EstEmancipe {
+		// Validation pour les mineurs émancipés
+		if member.ReferenceEmancipation == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "La référence de la décision de justice d'émancipation est obligatoire pour un mineur émancipé."})
+			return
+		}
 	}
 
 	// Insertion en base de données via le repository
@@ -125,6 +157,31 @@ func (h *MemberHandler) UpdateMember(c *gin.Context) {
 	member.Rue = req.Rue
 	member.Ville = req.Ville
 	member.CodePostal = req.CodePostal
+	member.ParentNom = req.ParentNom
+	member.ParentPrenom = req.ParentPrenom
+	member.ParentTelephone = req.ParentTelephone
+	member.ParentEmail = req.ParentEmail
+	member.ParentRelation = req.ParentRelation
+	member.EstEmancipe = req.EstEmancipe
+	member.ReferenceEmancipation = req.ReferenceEmancipation
+
+	// Validation de l'autorité parentale pour les mineurs non émancipés
+	if member.NeedsParentalAuthorization() {
+		if member.ParentNom == "" || member.ParentPrenom == "" || member.ParentRelation == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Les informations du représentant légal (Nom, Prénom, Relation) sont requises pour un mineur."})
+			return
+		}
+		if member.ParentEmail == "" && member.ParentTelephone == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Au moins un contact (Email ou Téléphone) pour le représentant légal est requis."})
+			return
+		}
+	} else if member.IsMinor() && member.EstEmancipe {
+		// Validation pour les mineurs émancipés
+		if member.ReferenceEmancipation == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "La référence de la décision de justice d'émancipation est obligatoire pour un mineur émancipé."})
+			return
+		}
+	}
 
 	// 4. Sauvegarder via le repository
 	if err := h.repo.Update(member); err != nil {

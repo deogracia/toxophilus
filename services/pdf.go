@@ -178,6 +178,23 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 		})
 		m.Col(6, func() { m.Text(fmt.Sprintf("N° Licence : %s", contract.Member.CodeAdherent), props.Text{Size: 8}) })
 	})
+	if contract.Member.IsMinor() {
+		if contract.Member.NeedsParentalAuthorization() {
+			m.Row(5, func() {
+				m.Col(12, func() {
+					m.Text(fmt.Sprintf("Représentant légal (Mineur) : %s %s (%s) - Tél : %s - Email : %s",
+						contract.Member.ParentPrenom, contract.Member.ParentNom, contract.Member.ParentRelation,
+						contract.Member.ParentTelephone, contract.Member.ParentEmail), props.Text{Size: 8, Style: consts.BoldItalic})
+				})
+			})
+		} else if contract.Member.EstEmancipe {
+			m.Row(5, func() {
+				m.Col(12, func() {
+					m.Text(fmt.Sprintf("Statut : Mineur émancipé (Décision : %s)", contract.Member.ReferenceEmancipation), props.Text{Size: 8, Style: consts.BoldItalic})
+				})
+			})
+		}
+	}
 	m.Line(3)
 
 	m.Row(6, func() {
@@ -282,8 +299,17 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 	m.Row(16, func() {
 		m.Col(6, func() { m.Text("Signature du Club :", props.Text{Style: consts.Bold, Size: 8}) })
 		m.Col(6, func() {
-			m.Text("Signature du Locataire :", props.Text{Style: consts.Bold, Size: 8})
-			m.Text("(Précédée de la mention \"Lu et approuvé\")", props.Text{Top: 4, Size: 7, Color: color.Color{Red: 120, Green: 120, Blue: 120}})
+			if contract.Member.NeedsParentalAuthorization() {
+				m.Text("Signature du Représentant Légal :", props.Text{Style: consts.Bold, Size: 8})
+				m.Text(fmt.Sprintf("(Pour l'adhérent mineur %s %s)", contract.Member.Prenom, contract.Member.Nom), props.Text{Top: 4, Size: 7, Color: color.Color{Red: 120, Green: 120, Blue: 120}})
+				m.Text("(Précédée de la mention \"Lu et approuvé\")", props.Text{Top: 8, Size: 7, Color: color.Color{Red: 120, Green: 120, Blue: 120}})
+			} else if contract.Member.IsMinor() && contract.Member.EstEmancipe {
+				m.Text("Signature du Locataire (Mineur émancipé) :", props.Text{Style: consts.Bold, Size: 8})
+				m.Text("(Précédée de la mention \"Lu et approuvé\")", props.Text{Top: 4, Size: 7, Color: color.Color{Red: 120, Green: 120, Blue: 120}})
+			} else {
+				m.Text("Signature du Locataire :", props.Text{Style: consts.Bold, Size: 8})
+				m.Text("(Précédée de la mention \"Lu et approuvé\")", props.Text{Top: 4, Size: 7, Color: color.Color{Red: 120, Green: 120, Blue: 120}})
+			}
 		})
 	})
 

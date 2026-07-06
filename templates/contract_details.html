@@ -65,6 +65,18 @@
                     <p><strong>Nom :</strong> {{ .Contract.Member.Nom }} {{ .Contract.Member.Prenom }}</p>
                     <p><strong>N° Licence :</strong> {{ .Contract.Member.CodeAdherent }}</p>
                     <p><strong>Email :</strong> <a href="mailto:{{ .Contract.Member.Email }}">{{ .Contract.Member.Email }}</a></p>
+                    {{ if .Contract.Member.IsMinor }}
+                        <hr style="margin: 10px 0;">
+                        {{ if .Contract.Member.NeedsParentalAuthorization }}
+                            <p style="color: #10ad67; font-size: 0.9em; margin-bottom: 5px;"><strong>👪 Représentant Légal (Autorité Parentale) :</strong></p>
+                            <p style="font-size: 0.85em; margin-bottom: 5px;"><strong>Nom :</strong> {{ .Contract.Member.ParentPrenom }} {{ .Contract.Member.ParentNom }} ({{ .Contract.Member.ParentRelation }})</p>
+                            {{ if .Contract.Member.ParentEmail }}<p style="font-size: 0.85em; margin-bottom: 5px;"><strong>Email :</strong> <a href="mailto:{{ .Contract.Member.ParentEmail }}">{{ .Contract.Member.ParentEmail }}</a></p>{{ end }}
+                            {{ if .Contract.Member.ParentTelephone }}<p style="font-size: 0.85em; margin-bottom: 5px;"><strong>Téléphone :</strong> {{ .Contract.Member.ParentTelephone }}</p>{{ end }}
+                        {{ else if .Contract.Member.EstEmancipe }}
+                            <p style="color: #10ad67; font-size: 0.9em; margin-bottom: 5px;"><strong>⚖️ Statut : Mineur émancipé</strong></p>
+                            <p style="font-size: 0.85em; margin-bottom: 5px;"><strong>Décision :</strong> {{ .Contract.Member.ReferenceEmancipation }}</p>
+                        {{ end }}
+                    {{ end }}
                 </article>
 
                 <article>
