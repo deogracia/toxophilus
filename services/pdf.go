@@ -295,6 +295,11 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 	// ==========================================
 	// 6. SIGNATURES (Compactées)
 	// ==========================================
+	m.Row(6, func() {
+		m.Col(12, func() {
+			m.Text("Fait à : ________________________, le : ________________________", props.Text{Style: consts.Italic, Size: 8})
+		})
+	})
 	// Hauteur ajustée à 16 unités pour éviter tout débordement sur la page 2
 	m.Row(16, func() {
 		m.Col(6, func() { m.Text("Signature du Club :", props.Text{Style: consts.Bold, Size: 8}) })
