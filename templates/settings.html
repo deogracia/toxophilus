@@ -24,9 +24,20 @@
                             </label>
                         </div>
                         <div class="grid">
-                            <label>Adresse postale du club
-                                <input type="text" name="club_address" value="{{ .Settings.club_address }}" placeholder="Ex: 44 rue Charles Mory, 91210 DRAVEIL">
+                            <label>Rue du club
+                                <input type="text" name="club_street_address" value="{{ .Settings.club_street_address }}" placeholder="Ex: 44 rue Charles Mory">
                             </label>
+                            <label>Code Postal
+                                <input type="text" name="club_postal_code" value="{{ .Settings.club_postal_code }}" placeholder="Ex: 91210">
+                            </label>
+                            <label>Ville / Localité
+                                <input type="text" name="club_address_locality" value="{{ .Settings.club_address_locality }}" placeholder="Ex: DRAVEIL">
+                            </label>
+                            <label>Pays
+                                <input type="text" name="club_address_country" value="{{ .Settings.club_address_country }}" placeholder="Ex: FR">
+                            </label>
+                        </div>
+                        <div class="grid">
                             <label>URL du site Web
                                 <input type="url" name="club_website" value="{{ .Settings.club_website }}" placeholder="Ex: https://archersdedraveil.com">
                             </label>

@@ -295,9 +295,23 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 	// ==========================================
 	// 6. SIGNATURES (Compactées)
 	// ==========================================
+	dateCreation := contract.CreatedAt
+	if dateCreation.IsZero() {
+		dateCreation = contract.DateDebut
+	}
+	dateStr := dateCreation.Format("02/01/2006")
+
+	clubCity := settings["club_address_locality"]
+	if clubCity == "" {
+		clubCity = "________________________"
+	}
+
 	m.Row(6, func() {
-		m.Col(12, func() {
-			m.Text("Fait à : ________________________, le : ________________________", props.Text{Style: consts.Italic, Size: 8})
+		m.Col(6, func() {
+			m.Text(fmt.Sprintf("Fait à : %s, le : %s", clubCity, dateStr), props.Text{Style: consts.Italic, Size: 8})
+		})
+		m.Col(6, func() {
+			m.Text(fmt.Sprintf("Fait à : %s, le : %s", clubCity, dateStr), props.Text{Style: consts.Italic, Size: 8})
 		})
 	})
 	// Hauteur ajustée à 16 unités pour éviter tout débordement sur la page 2

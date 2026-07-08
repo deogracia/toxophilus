@@ -29,10 +29,10 @@ type CreateMemberRequest struct {
 	DateNaissance         string `json:"date_naissance" binding:"required"` // Attendu: AAAA-MM-JJ
 	Email                 string `json:"email" binding:"required,email"`
 	Telephone             string `json:"telephone"`
-	NumeroRue             string `json:"numero_rue"`
-	Rue                   string `json:"rue"`
-	Ville                 string `json:"ville"`
-	CodePostal            string `json:"code_postal"`
+	StreetAddress         string `json:"street_address"`
+	PostalCode            string `json:"postal_code"`
+	AddressLocality       string `json:"address_locality"`
+	AddressCountry        string `json:"address_country"`
 	ParentNom             string `json:"parent_nom"`
 	ParentPrenom          string `json:"parent_prenom"`
 	ParentTelephone       string `json:"parent_telephone"`
@@ -64,10 +64,10 @@ func (h *MemberHandler) CreateMember(c *gin.Context) {
 		DateNaissance:         dateNaissance,
 		Email:                 req.Email,
 		Telephone:             req.Telephone,
-		NumeroRue:             req.NumeroRue,
-		Rue:                   req.Rue,
-		Ville:                 req.Ville,
-		CodePostal:            req.CodePostal,
+		StreetAddress:         req.StreetAddress,
+		PostalCode:            req.PostalCode,
+		AddressLocality:       req.AddressLocality,
+		AddressCountry:        req.AddressCountry,
 		ParentNom:             req.ParentNom,
 		ParentPrenom:          req.ParentPrenom,
 		ParentTelephone:       req.ParentTelephone,
@@ -153,10 +153,10 @@ func (h *MemberHandler) UpdateMember(c *gin.Context) {
 	member.DateNaissance = dateNaissance
 	member.Email = req.Email
 	member.Telephone = req.Telephone
-	member.NumeroRue = req.NumeroRue
-	member.Rue = req.Rue
-	member.Ville = req.Ville
-	member.CodePostal = req.CodePostal
+	member.StreetAddress = req.StreetAddress
+	member.PostalCode = req.PostalCode
+	member.AddressLocality = req.AddressLocality
+	member.AddressCountry = req.AddressCountry
 	member.ParentNom = req.ParentNom
 	member.ParentPrenom = req.ParentPrenom
 	member.ParentTelephone = req.ParentTelephone

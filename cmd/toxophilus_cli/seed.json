@@ -7,10 +7,10 @@
       "date_naissance": "1985-03-15T00:00:00Z",
       "email": "jean.dupont@email.com",
       "telephone": "0612345678",
-      "numero_rue": "12",
-      "rue": "rue de la Paix",
-      "ville": "Paris",
-      "code_postal": "75002"
+      "street_address": "12 rue de la Paix",
+      "address_locality": "Paris",
+      "postal_code": "75002",
+      "address_country": "FR"
     },
     {
       "code_adherent": "FR-2026-002",
@@ -19,10 +19,10 @@
       "date_naissance": "1992-07-22T00:00:00Z",
       "email": "marie.martin@email.com",
       "telephone": "0687654321",
-      "numero_rue": "5",
-      "rue": "avenue de la République",
-      "ville": "Lyon",
-      "code_postal": "69011"
+      "street_address": "5 avenue de la République",
+      "address_locality": "Lyon",
+      "postal_code": "69011",
+      "address_country": "FR"
     },
     {
       "code_adherent": "FR-2026-003",
@@ -31,10 +31,10 @@
       "date_naissance": "2005-11-10T00:00:00Z",
       "email": "pierre.bernard@email.com",
       "telephone": "0711223344",
-      "numero_rue": "18",
-      "rue": "rue des Écoles",
-      "ville": "Marseille",
-      "code_postal": "13005"
+      "street_address": "18 rue des Écoles",
+      "address_locality": "Marseille",
+      "postal_code": "13005",
+      "address_country": "FR"
     },
     {
       "code_adherent": "FR-2026-004",
@@ -43,10 +43,10 @@
       "date_naissance": "1998-05-05T00:00:00Z",
       "email": "sophie.dubois@email.com",
       "telephone": "0655667788",
-      "numero_rue": "3",
-      "rue": "villa des Lilas",
-      "ville": "Toulouse",
-      "code_postal": "31000"
+      "street_address": "3 villa des Lilas",
+      "address_locality": "Toulouse",
+      "postal_code": "31000",
+      "address_country": "FR"
     },
     {
       "code_adherent": "FR-2026-005",
@@ -55,10 +55,10 @@
       "date_naissance": "2012-04-10T00:00:00Z",
       "email": "lucas.morel@email.com",
       "telephone": "0699001122",
-      "numero_rue": "24",
-      "rue": "rue du Stade",
-      "ville": "Nantes",
-      "code_postal": "44000",
+      "street_address": "24 rue du Stade",
+      "address_locality": "Nantes",
+      "postal_code": "44000",
+      "address_country": "FR",
       "parent_nom": "Morel",
       "parent_prenom": "Thomas",
       "parent_telephone": "0688776655",
@@ -74,10 +74,10 @@
       "date_naissance": "2010-09-18T00:00:00Z",
       "email": "chloe.petit@email.com",
       "telephone": "0744556677",
-      "numero_rue": "10",
-      "rue": "rue de la Liberté",
-      "ville": "Bordeaux",
-      "code_postal": "33000",
+      "street_address": "10 rue de la Liberté",
+      "address_locality": "Bordeaux",
+      "postal_code": "33000",
+      "address_country": "FR",
       "parent_nom": "",
       "parent_prenom": "",
       "parent_telephone": "",
@@ -198,7 +198,10 @@
   "settings": {
     "pdf_club_name": "Club de Tir à l'Arc - Toxophilus",
     "pdf_club_subtitle": "La flèche de Sénart",
-    "club_address": "44 rue Charles Mory, 91210 DRAVEIL",
+    "club_street_address": "44 rue Charles Mory",
+    "club_postal_code": "91210",
+    "club_address_locality": "DRAVEIL",
+    "club_address_country": "FR",
     "club_website": "https://toxophilus.fr",
     "pdf_footer_ligne1": "Association Loi 1901 - Siret: 123 456 789 00012 - Affilié FFTA N°123456",
     "pdf_footer_ligne2": "Siège social: 44 rue Charles Mory, 91210 DRAVEIL - Contact: contact@toxophilus.fr",

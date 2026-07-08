@@ -24,10 +24,10 @@ type SeedMember struct {
 	DateNaissance         time.Time `json:"date_naissance"`
 	Email                 string    `json:"email"`
 	Telephone             string    `json:"telephone"`
-	NumeroRue             string    `json:"numero_rue"`
-	Rue                   string    `json:"rue"`
-	Ville                 string    `json:"ville"`
-	CodePostal            string    `json:"code_postal"`
+	StreetAddress         string    `json:"street_address"`
+	PostalCode            string    `json:"postal_code"`
+	AddressLocality       string    `json:"address_locality"`
+	AddressCountry        string    `json:"address_country"`
 	ParentNom             string    `json:"parent_nom"`
 	ParentPrenom          string    `json:"parent_prenom"`
 	ParentTelephone       string    `json:"parent_telephone"`
@@ -174,10 +174,10 @@ func seedData() {
 				DateNaissance:         sm.DateNaissance,
 				Email:                 sm.Email,
 				Telephone:             sm.Telephone,
-				NumeroRue:             sm.NumeroRue,
-				Rue:                   sm.Rue,
-				Ville:                 sm.Ville,
-				CodePostal:            sm.CodePostal,
+				StreetAddress:         sm.StreetAddress,
+				PostalCode:            sm.PostalCode,
+				AddressLocality:       sm.AddressLocality,
+				AddressCountry:        sm.AddressCountry,
 				ParentNom:             sm.ParentNom,
 				ParentPrenom:          sm.ParentPrenom,
 				ParentTelephone:       sm.ParentTelephone,

@@ -23,10 +23,10 @@ type Member struct {
 	DateNaissance         time.Time
 	Email                 string
 	Telephone             string
-	NumeroRue             string
-	Rue                   string
-	Ville                 string
-	CodePostal            string
+	StreetAddress         string
+	PostalCode            string
+	AddressLocality       string
+	AddressCountry        string
 	ParentNom             string
 	ParentPrenom          string
 	ParentTelephone       string
