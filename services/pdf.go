@@ -240,6 +240,15 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 			m.Text(fmt.Sprintf("Période de location : Du %s au %s", contract.DateDebut.Format("02/01/2006"), contract.DateFin.Format("02/01/2006")), props.Text{Style: consts.BoldItalic, Size: 8})
 		})
 	})
+
+	// Notes / Observations particulières (si renseignées)
+	if contract.Commentaire != "" {
+		m.Row(5, func() {
+			m.Col(12, func() {
+				m.Text(fmt.Sprintf("Observations : %s", contract.Commentaire), props.Text{Style: consts.Italic, Size: 8})
+			})
+		})
+	}
 	m.Line(3)
 
 	// ==========================================
