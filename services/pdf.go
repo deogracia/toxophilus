@@ -178,6 +178,14 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 		})
 		m.Col(6, func() { m.Text(fmt.Sprintf("N° Licence : %s", contract.Member.CodeAdherent), props.Text{Size: 8}) })
 	})
+	m.Row(5, func() {
+		m.Col(6, func() {
+			m.Text(fmt.Sprintf("Adresse : %s, %s %s", contract.Member.StreetAddress, contract.Member.PostalCode, contract.Member.AddressLocality), props.Text{Size: 8})
+		})
+		m.Col(6, func() {
+			m.Text(fmt.Sprintf("Email : %s  -  Tél : %s", contract.Member.Email, contract.Member.Telephone), props.Text{Size: 8})
+		})
+	})
 	if contract.Member.IsMinor() {
 		if contract.Member.NeedsParentalAuthorization() {
 			m.Row(5, func() {
