@@ -100,7 +100,7 @@ func TestSeedData(t *testing.T) {
 
 	var settingClause models.Setting
 	db.Where("cle = ?", "pdf_clause_mise_disposition").First(&settingClause)
-	if !strings.Contains(settingClause.Valeur, "Le club, dont le données figurent en bas de ce contrat, met à disposition de l'adhérent le matériel d'archerie désigné ci-dessus") {
+	if !strings.Contains(settingClause.Valeur, "Le club, dont les données figurent en bas de ce contrat, met à disposition de l'adhérent le matériel d'archerie désigné ci-dessus") {
 		t.Errorf("La clause de mise à disposition est absente ou incorrecte, obtenu %s", settingClause.Valeur)
 	}
 }

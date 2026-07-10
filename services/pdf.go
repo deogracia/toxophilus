@@ -178,6 +178,14 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 		})
 		m.Col(6, func() { m.Text(fmt.Sprintf("N° Licence : %s", contract.Member.CodeAdherent), props.Text{Size: 8}) })
 	})
+	m.Row(5, func() {
+		m.Col(6, func() {
+			m.Text(fmt.Sprintf("Adresse : %s, %s %s", contract.Member.StreetAddress, contract.Member.PostalCode, contract.Member.AddressLocality), props.Text{Size: 8})
+		})
+		m.Col(6, func() {
+			m.Text(fmt.Sprintf("Email : %s  -  Tél : %s", contract.Member.Email, contract.Member.Telephone), props.Text{Size: 8})
+		})
+	})
 	if contract.Member.IsMinor() {
 		if contract.Member.NeedsParentalAuthorization() {
 			m.Row(5, func() {
@@ -240,6 +248,15 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 			m.Text(fmt.Sprintf("Période de location : Du %s au %s", contract.DateDebut.Format("02/01/2006"), contract.DateFin.Format("02/01/2006")), props.Text{Style: consts.BoldItalic, Size: 8})
 		})
 	})
+
+	// Notes / Observations particulières (si renseignées)
+	if contract.Commentaire != "" {
+		m.Row(5, func() {
+			m.Col(12, func() {
+				m.Text(fmt.Sprintf("Observations : %s", contract.Commentaire), props.Text{Style: consts.Italic, Size: 8})
+			})
+		})
+	}
 	m.Line(3)
 
 	// ==========================================
@@ -295,6 +312,25 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 	// ==========================================
 	// 6. SIGNATURES (Compactées)
 	// ==========================================
+	dateCreation := contract.CreatedAt
+	if dateCreation.IsZero() {
+		dateCreation = contract.DateDebut
+	}
+	dateStr := dateCreation.Format("02/01/2006")
+
+	clubCity := settings["club_address_locality"]
+	if clubCity == "" {
+		clubCity = "________________________"
+	}
+
+	m.Row(6, func() {
+		m.Col(6, func() {
+			m.Text(fmt.Sprintf("Fait à : %s, le : %s", clubCity, dateStr), props.Text{Style: consts.Italic, Size: 8})
+		})
+		m.Col(6, func() {
+			m.Text(fmt.Sprintf("Fait à : %s, le : %s", clubCity, dateStr), props.Text{Style: consts.Italic, Size: 8})
+		})
+	})
 	// Hauteur ajustée à 16 unités pour éviter tout débordement sur la page 2
 	m.Row(16, func() {
 		m.Col(6, func() { m.Text("Signature du Club :", props.Text{Style: consts.Bold, Size: 8}) })

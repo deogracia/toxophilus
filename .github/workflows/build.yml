@@ -21,9 +21,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configuration de Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
+          check-latest: true
 
       - name: Scan Govulncheck (Dépendances)
         run: |
@@ -53,9 +54,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configuration de Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
+          check-latest: true
 
       - name: Génération des fichiers static
         run: |

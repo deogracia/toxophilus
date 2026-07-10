@@ -49,7 +49,7 @@ func (h *SettingHandler) ProcessSettingsSave(c *gin.Context) {
 	// 1. Récupération des champs textes classiques
 	fields := []string{
 		"pdf_club_name", "pdf_club_subtitle",
-		"club_address", "club_website",
+		"club_street_address", "club_postal_code", "club_address_locality", "club_address_country", "club_website",
 		"pdf_footer_ligne1", "pdf_footer_ligne2",
 		"pdf_clause_mise_disposition", "pdf_clause_conditions_utilisation",
 		"pdf_clause_entretien_reparations", "pdf_clause_depot_garantie",
