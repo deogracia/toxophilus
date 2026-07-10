@@ -2,287 +2,171 @@ package services
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
+	"codeberg.org/go-pdf/fpdf"
 	"github.com/deogracia/toxophilus/models"
-	"github.com/johnfercher/maroto/pkg/color"
-	"github.com/johnfercher/maroto/pkg/consts"
-	"github.com/johnfercher/maroto/pkg/pdf"
-	"github.com/johnfercher/maroto/pkg/props"
 	"github.com/spf13/viper"
 )
 
-// renderRichText décode et affiche un texte avec une mise en forme par mot / ligne :
-// - Si la ligne commence par - ou *, elle est affichée comme une puce d'indentation.
-// - Les segments de texte entourés de ** sont affichés en Gras (ex: Le matériel est **personnel** ➡️ Le matériel est personnel).
-func renderRichText(m pdf.Maroto, text string) {
-	lines := strings.Split(text, "\n")
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if trimmed == "" {
-			m.Row(2, func() {}) // Saut de ligne vide léger
-			continue
-		}
+var reBold = regexp.MustCompile(`\*\*(.*?)\*\*`)
+var reItalic = regexp.MustCompile(`\*(.*?)\*`)
 
-		isBullet := false
-		// Extraction et détection des puces
-		if strings.HasPrefix(trimmed, "- ") {
-			trimmed = strings.TrimPrefix(trimmed, "- ")
-			isBullet = true
-		} else if strings.HasPrefix(trimmed, "* ") {
-			trimmed = strings.TrimPrefix(trimmed, "* ")
-			isBullet = true
-		}
-
-		// Calcul de la hauteur de ligne requise (limite de ~135 caractères par ligne à la taille 8)
-		charCount := len(trimmed)
-		if isBullet {
-			charCount += 4
-		}
-		linesCount := charCount/135 + 1
-		rowHeight := float64(linesCount) * 3.8
-		if rowHeight < 4.5 {
-			rowHeight = 4.5
-		}
-
-		m.Row(rowHeight, func() {
-			m.Col(12, func() {
-				currentLeft := 0.0
-				if isBullet {
-					m.Text("• ", props.Text{
-						Size:  8,
-						Style: consts.Bold,
-						Color: color.Color{Red: 50, Green: 50, Blue: 50},
-						Left:  1.0,
-					})
-					currentLeft = 4.0 // Décalage pour le texte de la puce
-				}
-
-				// Découpage par "**" pour alterner entre style Normal et style Gras
-				parts := strings.Split(trimmed, "**")
-				for idx, part := range parts {
-					if part == "" {
-						continue
-					}
-
-					style := consts.Normal
-					textColor := color.Color{Red: 50, Green: 50, Blue: 50}
-					if idx%2 == 1 {
-						style = consts.Bold
-						textColor = color.Color{Red: 10, Green: 10, Blue: 10}
-					}
-
-					m.Text(part, props.Text{
-						Size:  8,
-						Style: style,
-						Color: textColor,
-						Left:  currentLeft,
-					})
-
-					// Estimation de l'encombrement horizontal du segment imprimé :
-					// Environ 1.35 unités de largeur par caractère à la taille de police 8.
-					// Cela permet aux segments de s'écrire harmonieusement à la suite.
-					currentLeft += float64(len(part)) * 1.32
-				}
-			})
-		})
-	}
+// markdownToHTML convertit les ** en <b> et les * en <i> pour le moteur HTML de GoFPDF
+func markdownToHTML(text string) string {
+	// On nettoie d'abord les retours à la ligne pour le moteur HTML de GoFPDF
+	text = strings.ReplaceAll(text, "\r\n", "<br>")
+	text = strings.ReplaceAll(text, "\n", "<br>")
+	html := reBold.ReplaceAllString(text, "<b>$1</b>")
+	html = reItalic.ReplaceAllString(html, "<i>$1</i>")
+	return html
 }
 
 // GenerateContractPDF accepte en entrée le contrat ET les réglages dynamiques
-// et génère le contrat au format PDF sur une seule page A4.
+// et génère le contrat au format PDF sur une seule page A4 à l'aide de GoFPDF.
 func GenerateContractPDF(contract models.Contract, settings map[string]string) (string, error) {
-	m := pdf.NewMaroto(consts.Portrait, consts.A4)
-	// Marges compactées pour maximiser la hauteur verticale imprimable
-	m.SetPageMargins(10, 10, 10)
+	// Création du document PDF (Portrait, millimètres, format A4)
+	pdf := fpdf.New("P", "mm", "A4", "")
+	pdf.SetMargins(10, 10, 10)
+	pdf.SetAutoPageBreak(true, 15)
+
+	// Traducteur d'encodage pour afficher parfaitement les accents français et le symbole Euro (€)
+	tr := pdf.UnicodeTranslatorFromDescriptor("cp1252")
 
 	// ==========================================
-	// 1. PIED DE PAGE LÉGAL (Compacté)
+	// 1. CONFIGURATION DU PIED DE PAGE LÉGAL (Natif)
 	// ==========================================
-	m.RegisterFooter(func() {
-		m.Row(3, func() {
-			m.Col(12, func() {
-				m.Text(settings["pdf_footer_ligne1"], props.Text{Size: 7, Style: consts.Italic, Align: consts.Center})
-			})
-		})
-		m.Row(3, func() {
-			m.Col(12, func() {
-				m.Text(settings["pdf_footer_ligne2"], props.Text{Size: 7, Style: consts.Italic, Align: consts.Center})
-			})
-		})
+	pdf.SetFooterFunc(func() {
+		pdf.SetY(-15)
+		pdf.SetFont("Arial", "I", 7)
+		pdf.CellFormat(190, 3, tr(settings["pdf_footer_ligne1"]), "", 1, "C", false, 0, "")
+		pdf.CellFormat(190, 3, tr(settings["pdf_footer_ligne2"]), "", 1, "C", false, 0, "")
 		if settings["pdf_show_contact_footer"] == "true" {
-			log.Println("pdf.go - affichage adresse physique et web demandée si renseignées")
-			// Ligne d'adresse dédiée (si renseignée)
+			var contactParts []string
 			if settings["club_address"] != "" {
-				log.Println("pdf.go - affichage adresse physique demandée. adresse : " + settings["club_address"])
-				m.Row(3, func() {
-					m.Col(12, func() {
-						m.Text("Siège social : "+settings["club_address"], props.Text{Size: 7, Style: consts.BoldItalic, Align: consts.Center})
-					})
-				})
+				contactParts = append(contactParts, "Siège social : "+settings["club_address"])
 			}
-			// Ligne de site Web dédiée (si renseignée)
 			if settings["club_website"] != "" {
-				log.Println("pdf.go - affichage adresse web demandée. adresse : " + settings["club_website"])
-				m.Row(3, func() {
-					m.Col(12, func() {
-						m.Text("Site Web : "+settings["club_website"], props.Text{Size: 7, Style: consts.BoldItalic, Align: consts.Center})
-					})
-				})
+				contactParts = append(contactParts, "Site Web : "+settings["club_website"])
+			}
+			if len(contactParts) > 0 {
+				pdf.SetFont("Arial", "BI", 7)
+				pdf.CellFormat(190, 3, tr(strings.Join(contactParts, " - ")), "", 1, "C", false, 0, "")
 			}
 		}
 	})
 
+	pdf.AddPage()
+
 	// ==========================================
-	// 2. EN-TÊTE DU CLUB (Image ou Texte - Compacté)
+	// 2. EN-TÊTE DU CLUB (Image ou Texte)
 	// ==========================================
 	headerImagePath := settings["pdf_header_image"]
 
 	if headerImagePath != "" {
-		// Hauteur réduite à 22 pour économiser l'espace vertical
-		m.Row(22, func() {
-			m.Col(12, func() {
-				_ = m.FileImage(headerImagePath, props.Rect{
-					Center:  true,
-					Percent: 100,
-				})
-			})
-		})
-		m.Row(3, func() {}) // Petit espace sous l'image
+		// Image d'en-tête (190 mm de large, hauteur calculée proportionnellement pour conserver le ratio d'aspect)
+		info := pdf.RegisterImageOptions(headerImagePath, fpdf.ImageOptions{ImageType: "", ReadDpi: true})
+		if info != nil && info.Width() > 0 {
+			propHeight := (190.0 / info.Width()) * info.Height()
+			pdf.ImageOptions(headerImagePath, 10, 10, 190, propHeight, false, fpdf.ImageOptions{ImageType: "", ReadDpi: true}, 0, "")
+			pdf.SetY(10 + propHeight + 4)
+		} else {
+			pdf.ImageOptions(headerImagePath, 10, 10, 190, 22, false, fpdf.ImageOptions{ImageType: "", ReadDpi: true}, 0, "")
+			pdf.SetY(36)
+		}
 	} else {
-		m.Row(10, func() {
-			m.Col(12, func() {
-				m.Text(settings["pdf_club_name"], props.Text{Top: 2, Style: consts.Bold, Align: consts.Center, Size: 18})
-			})
-		})
-		m.Row(6, func() {
-			m.Col(12, func() {
-				m.Text(settings["pdf_club_subtitle"], props.Text{Style: consts.Italic, Align: consts.Center, Size: 11})
-			})
-		})
+		pdf.SetY(10)
+		pdf.SetFont("Arial", "B", 18)
+		pdf.CellFormat(190, 9, tr(settings["pdf_club_name"]), "", 1, "C", false, 0, "")
+		pdf.SetFont("Arial", "I", 11)
+		pdf.CellFormat(190, 5, tr(settings["pdf_club_subtitle"]), "", 1, "C", false, 0, "")
+		pdf.SetY(pdf.GetY() + 1)
 	}
-	m.Line(3) // Ligne très fine pour préserver la hauteur
+	pdf.Line(10, pdf.GetY(), 200, pdf.GetY())
+	pdf.SetY(pdf.GetY() + 3)
 
 	// ==========================================
-	// 3. LOCATAIRE, MATÉRIEL & PÉRIODE (Compacté)
+	// 3. LOCATAIRE & CONTACTS
 	// ==========================================
-	m.Row(6, func() {
-		m.Col(12, func() { m.Text("INFORMATIONS DU LOCATAIRE", props.Text{Style: consts.Bold, Size: 9}) })
-	})
-	m.Row(5, func() {
-		m.Col(6, func() {
-			m.Text(fmt.Sprintf("Nom / Prénom : %s %s", contract.Member.Nom, contract.Member.Prenom), props.Text{Size: 8})
-		})
-		m.Col(6, func() { m.Text(fmt.Sprintf("N° Licence : %s", contract.Member.CodeAdherent), props.Text{Size: 8}) })
-	})
-	m.Row(5, func() {
-		m.Col(6, func() {
-			m.Text(fmt.Sprintf("Adresse : %s, %s %s", contract.Member.StreetAddress, contract.Member.PostalCode, contract.Member.AddressLocality), props.Text{Size: 8})
-		})
-		m.Col(6, func() {
-			m.Text(fmt.Sprintf("Email : %s  -  Tél : %s", contract.Member.Email, contract.Member.Telephone), props.Text{Size: 8})
-		})
-	})
+	pdf.SetFont("Arial", "B", 9)
+	pdf.CellFormat(190, 5, tr("INFORMATIONS DU LOCATAIRE"), "", 1, "L", false, 0, "")
+	pdf.SetFont("Arial", "", 8)
+	pdf.CellFormat(95, 4, tr(fmt.Sprintf("Nom / Prénom : %s %s", contract.Member.Nom, contract.Member.Prenom)), "", 0, "L", false, 0, "")
+	pdf.CellFormat(95, 4, tr(fmt.Sprintf("N° Licence : %s", contract.Member.CodeAdherent)), "", 1, "L", false, 0, "")
+
+	pdf.CellFormat(95, 4, tr(fmt.Sprintf("Adresse : %s, %s %s", contract.Member.StreetAddress, contract.Member.PostalCode, contract.Member.AddressLocality)), "", 0, "L", false, 0, "")
+	pdf.CellFormat(95, 4, tr(fmt.Sprintf("Email : %s  -  Tél : %s", contract.Member.Email, contract.Member.Telephone)), "", 1, "L", false, 0, "")
+
 	if contract.Member.IsMinor() {
+		pdf.SetFont("Arial", "BI", 8)
 		if contract.Member.NeedsParentalAuthorization() {
-			m.Row(5, func() {
-				m.Col(12, func() {
-					m.Text(fmt.Sprintf("Représentant légal (Mineur) : %s %s (%s) - Tél : %s - Email : %s",
-						contract.Member.ParentPrenom, contract.Member.ParentNom, contract.Member.ParentRelation,
-						contract.Member.ParentTelephone, contract.Member.ParentEmail), props.Text{Size: 8, Style: consts.BoldItalic})
-				})
-			})
+			pdf.CellFormat(190, 4, tr(fmt.Sprintf("Représentant légal (Mineur) : %s %s (%s) - Tél : %s - Email : %s",
+				contract.Member.ParentPrenom, contract.Member.ParentNom, contract.Member.ParentRelation,
+				contract.Member.ParentTelephone, contract.Member.ParentEmail)), "", 1, "L", false, 0, "")
 		} else if contract.Member.EstEmancipe {
-			m.Row(5, func() {
-				m.Col(12, func() {
-					m.Text(fmt.Sprintf("Statut : Mineur émancipé (Décision : %s)", contract.Member.ReferenceEmancipation), props.Text{Size: 8, Style: consts.BoldItalic})
-				})
-			})
+			pdf.CellFormat(190, 4, tr(fmt.Sprintf("Statut : Mineur émancipé (Décision : %s)", contract.Member.ReferenceEmancipation)), "", 1, "L", false, 0, "")
 		}
 	}
-	m.Line(3)
+	pdf.SetY(pdf.GetY() + 1)
+	pdf.Line(10, pdf.GetY(), 200, pdf.GetY())
+	pdf.SetY(pdf.GetY() + 2)
 
-	m.Row(6, func() {
-		m.Col(12, func() { m.Text("MATÉRIEL MIS À DISPOSITION & PÉRIODE", props.Text{Style: consts.Bold, Size: 9}) })
-	})
+	// ==========================================
+	// 4. MATÉRIEL MIS À DISPOSITION & PÉRIODE
+	// ==========================================
+	pdf.SetFont("Arial", "B", 9)
+	pdf.CellFormat(190, 5, tr("MATÉRIEL MIS À DISPOSITION & PÉRIODE"), "", 1, "L", false, 0, "")
+	pdf.SetFont("Arial", "", 8)
 
 	hasEquipment := false
 	if contract.Riser.NumeroSerie != "" {
 		hasEquipment = true
-		m.Row(5, func() {
-			m.Col(12, func() {
-				m.Text(fmt.Sprintf("Poignée : %s %s (N° %s)", contract.Riser.Marque, contract.Riser.Modele, contract.Riser.NumeroSerie), props.Text{Size: 8})
-			})
-		})
+		pdf.CellFormat(190, 4, tr(fmt.Sprintf("Poignée : %s %s (N° %s)", contract.Riser.Marque, contract.Riser.Modele, contract.Riser.NumeroSerie)), "", 1, "L", false, 0, "")
 	}
 	if contract.Limb.NumeroSerie != "" {
 		hasEquipment = true
-		m.Row(5, func() {
-			m.Col(12, func() {
-				m.Text(fmt.Sprintf("Branches : %s %s - %s / %s lbs (N° %s)", contract.Limb.Marque, contract.Limb.Modele, contract.Limb.Taille, contract.Limb.Puissance, contract.Limb.NumeroSerie), props.Text{Size: 8})
-			})
-		})
+		pdf.CellFormat(190, 4, tr(fmt.Sprintf("Branches : %s %s - %s / %s lbs (N° %s)", contract.Limb.Marque, contract.Limb.Modele, contract.Limb.Taille, contract.Limb.Puissance, contract.Limb.NumeroSerie)), "", 1, "L", false, 0, "")
 	}
 	if contract.Accessoires != "" {
 		hasEquipment = true
-		m.Row(5, func() {
-			m.Col(12, func() {
-				m.Text(fmt.Sprintf("Accessoires : %s", contract.Accessoires), props.Text{Size: 8})
-			})
-		})
+		pdf.CellFormat(190, 4, tr(fmt.Sprintf("Accessoires : %s", contract.Accessoires)), "", 1, "L", false, 0, "")
 	}
 	if !hasEquipment {
-		m.Row(5, func() {
-			m.Col(12, func() {
-				m.Text("Aucun arc spécifique. Accessoires uniquement.", props.Text{Size: 8, Style: consts.Italic})
-			})
-		})
+		pdf.SetFont("Arial", "I", 8)
+		pdf.CellFormat(190, 4, tr("Aucun arc spécifique. Accessoires uniquement."), "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 8)
 	}
 
-	// Affichage formel de la Période de Location
-	m.Row(5, func() {
-		m.Col(12, func() {
-			m.Text(fmt.Sprintf("Période de location : Du %s au %s", contract.DateDebut.Format("02/01/2006"), contract.DateFin.Format("02/01/2006")), props.Text{Style: consts.BoldItalic, Size: 8})
-		})
-	})
-
-	// Notes / Observations particulières (si renseignées)
+	pdf.SetFont("Arial", "BI", 8)
+	pdf.CellFormat(190, 4, tr(fmt.Sprintf("Période de location : Du %s au %s", contract.DateDebut.Format("02/01/2006"), contract.DateFin.Format("02/01/2006"))), "", 1, "L", false, 0, "")
 	if contract.Commentaire != "" {
-		m.Row(5, func() {
-			m.Col(12, func() {
-				m.Text(fmt.Sprintf("Observations : %s", contract.Commentaire), props.Text{Style: consts.Italic, Size: 8})
-			})
-		})
+		pdf.SetFont("Arial", "I", 8)
+		pdf.CellFormat(190, 4, tr(fmt.Sprintf("Observations : %s", contract.Commentaire)), "", 1, "L", false, 0, "")
 	}
-	m.Line(3)
+	pdf.SetY(pdf.GetY() + 1)
+	pdf.Line(10, pdf.GetY(), 200, pdf.GetY())
+	pdf.SetY(pdf.GetY() + 2)
 
 	// ==========================================
-	// 4. CONDITIONS FINANCIÈRES (Compactées)
+	// 5. CONDITIONS FINANCIÈRES
 	// ==========================================
-	m.Row(6, func() {
-		m.Col(12, func() { m.Text("CONDITIONS FINANCIÈRES", props.Text{Style: consts.Bold, Size: 9}) })
-	})
-
-	m.Row(5, func() {
-		m.Col(6, func() {
-			m.Text(fmt.Sprintf("Montant de la location : %.2f €", contract.MontantLocation), props.Text{Size: 8})
-		})
-		m.Col(6, func() {
-			m.Text(fmt.Sprintf("Montant de la caution : %.2f €", contract.MontantCaution), props.Text{Size: 8})
-		})
-	})
-
-	m.Line(3)
+	pdf.SetFont("Arial", "B", 9)
+	pdf.CellFormat(190, 5, tr("CONDITIONS FINANCIÈRES"), "", 1, "L", false, 0, "")
+	pdf.SetFont("Arial", "", 8)
+	pdf.CellFormat(95, 4, tr(fmt.Sprintf("Montant de la location : %.2f €", contract.MontantLocation)), "", 0, "L", false, 0, "")
+	pdf.CellFormat(95, 4, tr(fmt.Sprintf("Montant de la caution : %.2f €", contract.MontantCaution)), "", 1, "L", false, 0, "")
+	pdf.SetY(pdf.GetY() + 1)
+	pdf.Line(10, pdf.GetY(), 200, pdf.GetY())
+	pdf.SetY(pdf.GetY() + 2)
 
 	// ==========================================
-	// 5. CONDITIONS DE LOCATION (Mise en forme riche)
+	// 6. CONDITIONS DE LOCATION (Rendu HTML Natif)
 	// ==========================================
-	m.Row(6, func() {
-		m.Col(12, func() { m.Text("CONDITIONS DE LOCATION", props.Text{Style: consts.Bold, Size: 9}) })
-	})
+	pdf.SetFont("Arial", "B", 9)
+	pdf.CellFormat(190, 5, tr("CONDITIONS DE LOCATION"), "", 1, "L", false, 0, "")
 
 	clauses := []struct {
 		Title string
@@ -295,22 +179,26 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 		{"5. Durée et restitution", "pdf_clause_duree_restitution"},
 	}
 
+	html := pdf.HTMLBasicNew()
 	for _, c := range clauses {
 		valeur := settings[c.Key]
 		if valeur != "" {
-			m.Row(4, func() {
-				m.Col(12, func() {
-					m.Text(c.Title, props.Text{Style: consts.Bold, Size: 8})
-				})
-			})
-			renderRichText(m, valeur)
-			m.Row(1, func() {}) // Micro-espace entre clauses
+			pdf.SetFont("Arial", "B", 8)
+			pdf.CellFormat(190, 4, tr(c.Title), "", 1, "L", false, 0, "")
+			pdf.SetFont("Arial", "", 8)
+
+			// Conversion automatique et parfaite du Markdown vers le HTML simple de GoFPDF
+			htmlText := tr(markdownToHTML(valeur))
+			html.Write(3.5, htmlText)
+			pdf.Ln(4.5) // Saut de ligne typographique aéré entre deux articles
 		}
 	}
-	m.Line(3)
+	pdf.SetY(pdf.GetY() + 1)
+	pdf.Line(10, pdf.GetY(), 200, pdf.GetY())
+	pdf.SetY(pdf.GetY() + 2)
 
 	// ==========================================
-	// 6. SIGNATURES (Compactées)
+	// 7. SIGNATURES
 	// ==========================================
 	dateCreation := contract.CreatedAt
 	if dateCreation.IsZero() {
@@ -323,32 +211,37 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 		clubCity = "________________________"
 	}
 
-	m.Row(6, func() {
-		m.Col(6, func() {
-			m.Text(fmt.Sprintf("Fait à : %s, le : %s", clubCity, dateStr), props.Text{Style: consts.Italic, Size: 8})
-		})
-		m.Col(6, func() {
-			m.Text(fmt.Sprintf("Fait à : %s, le : %s", clubCity, dateStr), props.Text{Style: consts.Italic, Size: 8})
-		})
-	})
-	// Hauteur ajustée à 16 unités pour éviter tout débordement sur la page 2
-	m.Row(16, func() {
-		m.Col(6, func() { m.Text("Signature du Club :", props.Text{Style: consts.Bold, Size: 8}) })
-		m.Col(6, func() {
-			if contract.Member.NeedsParentalAuthorization() {
-				m.Text("Signature du Représentant Légal :", props.Text{Style: consts.Bold, Size: 8})
-				m.Text(fmt.Sprintf("(Pour l'adhérent mineur %s %s)", contract.Member.Prenom, contract.Member.Nom), props.Text{Top: 4, Size: 7, Color: color.Color{Red: 120, Green: 120, Blue: 120}})
-				m.Text("(Précédée de la mention \"Lu et approuvé\")", props.Text{Top: 8, Size: 7, Color: color.Color{Red: 120, Green: 120, Blue: 120}})
-			} else if contract.Member.IsMinor() && contract.Member.EstEmancipe {
-				m.Text("Signature du Locataire (Mineur émancipé) :", props.Text{Style: consts.Bold, Size: 8})
-				m.Text("(Précédée de la mention \"Lu et approuvé\")", props.Text{Top: 4, Size: 7, Color: color.Color{Red: 120, Green: 120, Blue: 120}})
-			} else {
-				m.Text("Signature du Locataire :", props.Text{Style: consts.Bold, Size: 8})
-				m.Text("(Précédée de la mention \"Lu et approuvé\")", props.Text{Top: 4, Size: 7, Color: color.Color{Red: 120, Green: 120, Blue: 120}})
-			}
-		})
-	})
+	pdf.SetFont("Arial", "I", 8)
+	pdf.CellFormat(95, 4, tr(fmt.Sprintf("Fait à : %s, le : %s", clubCity, dateStr)), "", 0, "L", false, 0, "")
+	pdf.CellFormat(95, 4, tr(fmt.Sprintf("Fait à : %s, le : %s", clubCity, dateStr)), "", 1, "L", false, 0, "")
+	pdf.Ln(1)
 
+	pdf.SetFont("Arial", "B", 8)
+	pdf.CellFormat(95, 4, tr("Signature du Club :"), "", 0, "L", false, 0, "")
+	if contract.Member.NeedsParentalAuthorization() {
+		pdf.CellFormat(95, 4, tr("Signature du Représentant Légal :"), "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 7)
+		pdf.SetTextColor(120, 120, 120)
+		pdf.CellFormat(95, 3, "", "", 0, "L", false, 0, "")
+		pdf.CellFormat(95, 3, tr(fmt.Sprintf("(Pour l'adhérent mineur %s %s)", contract.Member.Prenom, contract.Member.Nom)), "", 1, "L", false, 0, "")
+		pdf.CellFormat(95, 3, "", "", 0, "L", false, 0, "")
+		pdf.CellFormat(95, 3, tr("(Précédée de la mention \"Lu et approuvé\")"), "", 1, "L", false, 0, "")
+	} else if contract.Member.IsMinor() && contract.Member.EstEmancipe {
+		pdf.CellFormat(95, 4, tr("Signature du Locataire (Mineur émancipé) :"), "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 7)
+		pdf.SetTextColor(120, 120, 120)
+		pdf.CellFormat(95, 3, "", "", 0, "L", false, 0, "")
+		pdf.CellFormat(95, 3, tr("(Précédée de la mention \"Lu et approuvé\")"), "", 1, "L", false, 0, "")
+	} else {
+		pdf.CellFormat(95, 4, tr("Signature du Locataire :"), "", 1, "L", false, 0, "")
+		pdf.SetFont("Arial", "", 7)
+		pdf.SetTextColor(120, 120, 120)
+		pdf.CellFormat(95, 3, "", "", 0, "L", false, 0, "")
+		pdf.CellFormat(95, 3, tr("(Précédée de la mention \"Lu et approuvé\")"), "", 1, "L", false, 0, "")
+	}
+	pdf.SetTextColor(0, 0, 0)
+
+	// Sauvegarde du document PDF
 	pdfDir := viper.GetString("app.pdf_dir")
 	if pdfDir == "" {
 		pdfDir = "data/pdf"
@@ -357,7 +250,7 @@ func GenerateContractPDF(contract models.Contract, settings map[string]string) (
 
 	filename := fmt.Sprintf("Contrat-N°%d-%s-%s-%s.pdf", contract.ID, contract.Member.Nom, contract.Member.Prenom, contract.DateDebut.Format("2006-01-02"))
 	fullPath := filepath.Join(pdfDir, filename)
-	err := m.OutputFileAndClose(fullPath)
+	err := pdf.OutputFileAndClose(fullPath)
 	if err != nil {
 		return "", err
 	}
