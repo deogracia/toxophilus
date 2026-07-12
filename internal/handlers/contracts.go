@@ -291,6 +291,10 @@ func (h *ContractHandler) DownloadContractPDF(c *gin.Context) {
 	c.FileAttachment(filename, filepath.Base(filename))
 }
 
+func isReleasedStatus(statut string) bool {
+	return statut == "Terminé" || statut == "Annulé"
+}
+
 // UpdateContractStatus modifie l'état d'un contrat via HTMX
 func (h *ContractHandler) UpdateContractStatus(c *gin.Context) {
 	idStr := c.Param("id")
@@ -328,7 +332,7 @@ func (h *ContractHandler) UpdateContractStatus(c *gin.Context) {
 	}
 
 	// LOGIQUE MÉTIER DU STOCK (via repositories injectés)
-	if nouveauStatut == "Terminé" && ancienStatut != "Terminé" {
+	if isReleasedStatus(nouveauStatut) && !isReleasedStatus(ancienStatut) {
 		if contract.RiserID != nil {
 			riser, err := h.riserRepo.GetByID(*contract.RiserID)
 			if err == nil {
@@ -343,7 +347,7 @@ func (h *ContractHandler) UpdateContractStatus(c *gin.Context) {
 				_ = h.limbRepo.Update(limb)
 			}
 		}
-	} else if ancienStatut == "Terminé" && nouveauStatut != "Terminé" {
+	} else if !isReleasedStatus(nouveauStatut) && isReleasedStatus(ancienStatut) {
 		if contract.RiserID != nil {
 			riser, err := h.riserRepo.GetByID(*contract.RiserID)
 			if err == nil {

@@ -242,3 +242,62 @@ func TestUpdateContractStatus(t *testing.T) {
 		t.Errorf("❌ Les branches devraient être redevenues disponibles")
 	}
 }
+
+func TestUpdateContractStatusCancelled(t *testing.T) {
+	// 1. Préparation de la base de données de test
+	r, h := setupContractTestDB()
+
+	// Création d'une poignée et de branches factices considérées comme louées (non disponibles)
+	riser := models.Riser{Marque: "Hoyt Cancel", NumeroSerie: "R-CANCEL-1", Disponibilite: false}
+	limb := models.Limb{Marque: "Uukha Cancel", NumeroSerie: "L-CANCEL-1", Disponibilite: false}
+	database.DB.Create(&riser)
+	database.DB.Create(&limb)
+
+	// Création d'un contrat factice (Actif) lié à ce matériel
+	contract := models.Contract{
+		Statut:       "Actif",
+		EtatPaiement: "En attente",
+		RiserID:      &riser.ID,
+		LimbID:       &limb.ID,
+	}
+	database.DB.Create(&contract)
+
+	// 2. Ajout de la route à tester
+	r.PUT("/contracts/:id/status", h.UpdateContractStatus)
+
+	// 3. Préparation des données du formulaire (Simulation de HTMX)
+	formData := url.Values{}
+	formData.Set("statut", "Annulé")
+	formData.Set("etat_paiement", "Annulé")
+
+	// 4. Exécution de la requête HTTP PUT
+	w := httptest.NewRecorder()
+	urlPath := "/contracts/" + strconv.Itoa(int(contract.ID)) + "/status"
+	req, _ := http.NewRequest(http.MethodPut, urlPath, strings.NewReader(formData.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	r.ServeHTTP(w, req)
+
+	// 5. Assertions de validation
+	if w.Code != http.StatusOK {
+		t.Errorf("❌ Code HTTP attendu 200, obtenu %d", w.Code)
+	}
+
+	var updatedContract models.Contract
+	database.DB.First(&updatedContract, contract.ID)
+	if updatedContract.Statut != "Annulé" {
+		t.Errorf("❌ Statut attendu 'Annulé', obtenu '%s'", updatedContract.Statut)
+	}
+
+	var updatedRiser models.Riser
+	database.DB.First(&updatedRiser, riser.ID)
+	if !updatedRiser.Disponibilite {
+		t.Errorf("❌ La poignée devrait être redevenue disponible après annulation")
+	}
+
+	var updatedLimb models.Limb
+	database.DB.First(&updatedLimb, limb.ID)
+	if !updatedLimb.Disponibilite {
+		t.Errorf("❌ Les branches devraient être redevenues disponibles après annulation")
+	}
+}
