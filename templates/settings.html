@@ -10,108 +10,143 @@
             <p>Configurez les informations officielles du club et le visuel des contrats PDF.</p>
 
             <article>
+                <!-- Onglets de Navigation -->
+                <div style="display: flex; gap: 10px; margin-bottom: 2rem;">
+                    <button type="button" id="tab-identity" class="btn-tab" onclick="showTab('identity-section')">🏢 Identité du Club</button>
+                    <button type="button" id="tab-contract" class="btn-tab outline secondary" onclick="showTab('contract-section')">📝 Contrat & Tarifs</button>
+                </div>
+
                 <!-- Formulaire classique pour l'upload de fichier -->
                 <form action="/settings/save" method="POST" enctype="multipart/form-data">
 
-                    <fieldset>
-                        <legend><strong>🏢 Identité du Club</strong></legend>
-                        <div class="grid">
-                            <label>Nom du club
-                                <input type="text" name="pdf_club_name" value="{{ .Settings.pdf_club_name }}" placeholder="Ex: Archers de Draveil">
-                            </label>
-                            <label>Sous-titre / Affiliation / Devise
-                                <input type="text" name="pdf_club_subtitle" value="{{ .Settings.pdf_club_subtitle }}" placeholder="Ex: Sénart Val-de-Seine">
-                            </label>
-                        </div>
-                        <div class="grid">
-                            <label>Rue du club
-                                <input type="text" name="club_street_address" value="{{ .Settings.club_street_address }}" placeholder="Ex: 44 rue Charles Mory">
-                            </label>
-                            <label>Code Postal
-                                <input type="text" name="club_postal_code" value="{{ .Settings.club_postal_code }}" placeholder="Ex: 91210">
-                            </label>
-                            <label>Ville / Localité
-                                <input type="text" name="club_address_locality" value="{{ .Settings.club_address_locality }}" placeholder="Ex: DRAVEIL">
-                            </label>
-                            <label>Pays
-                                <input type="text" name="club_address_country" value="{{ .Settings.club_address_country }}" placeholder="Ex: FR">
-                            </label>
-                        </div>
-                        <div class="grid">
-                            <label>URL du site Web
-                                <input type="url" name="club_website" value="{{ .Settings.club_website }}" placeholder="Ex: https://archersdedraveil.com">
-                            </label>
-                        </div>
-                    </fieldset>
+                    <!-- SECTION 1 : Identité du Club -->
+                    <div id="identity-section" class="tab-content">
+                        <fieldset>
+                            <legend><strong>🏢 Identité du Club</strong></legend>
+                            <div class="grid">
+                                <label>Nom du club
+                                    <input type="text" name="pdf_club_name" value="{{ .Settings.pdf_club_name }}" placeholder="Ex: Archers de Draveil">
+                                </label>
+                                <label>Sous-titre / Affiliation / Devise
+                                    <input type="text" name="pdf_club_subtitle" value="{{ .Settings.pdf_club_subtitle }}" placeholder="Ex: Sénart Val-de-Seine">
+                                </label>
+                            </div>
+                            <div class="grid">
+                                <label>Rue du club
+                                    <input type="text" name="club_street_address" value="{{ .Settings.club_street_address }}" placeholder="Ex: 44 rue Charles Mory">
+                                </label>
+                                <label>Code Postal
+                                    <input type="text" name="club_postal_code" value="{{ .Settings.club_postal_code }}" placeholder="Ex: 91210">
+                                </label>
+                                <label>Ville / Localité
+                                    <input type="text" name="club_address_locality" value="{{ .Settings.club_address_locality }}" placeholder="Ex: DRAVEIL">
+                                </label>
+                                <label>Pays
+                                    <input type="text" name="club_address_country" value="{{ .Settings.club_address_country }}" placeholder="Ex: FR">
+                                </label>
+                            </div>
+                            <div class="grid">
+                                <label>URL du site Web
+                                    <input type="url" name="club_website" value="{{ .Settings.club_website }}" placeholder="Ex: https://archersdedraveil.com">
+                                </label>
+                            </div>
+                        </fieldset>
 
-                    <fieldset>
-                        <legend><strong>🖼️ Bandeau Officiel (PDF)</strong></legend>
-                        <label>Image d'en-tête du contrat (Bandeau horizontal JPG/PNG)
-                            <input type="file" name="header_image" accept=".jpg,.jpeg,.png">
-                        </label>
-                        {{ if .Settings.pdf_header_image }}
-                            <small style="color: var(--pico-ins-color);">✔️ Un bandeau est actuellement configuré.</small>
-                        {{ else }}
-                            <small class="secondary">Aucun bandeau image configuré. Le mode texte sera utilisé par défaut.</small>
-                        {{ end }}
-                    </fieldset>
+                        <fieldset>
+                            <legend><strong>🖼️ Bandeau Officiel (PDF)</strong></legend>
+                            <label>Image d'en-tête du contrat (Bandeau horizontal JPG/PNG)
+                                <input type="file" name="header_image" accept=".jpg,.jpeg,.png">
+                            </label>
+                            {{ if .Settings.pdf_header_image }}
+                                <small style="color: var(--pico-ins-color);">✔️ Un bandeau est actuellement configuré.</small>
+                            {{ else }}
+                                <small class="secondary">Aucun bandeau image configuré. Le mode texte sera utilisé par défaut.</small>
+                            {{ end }}
+                        </fieldset>
 
-                    <fieldset>
-                        <legend><strong>⚖️ Mentions Légales & Pied de page</strong></legend>
-                        <label>Ligne de pied de page 1 (Identifiants, SIRET, Affiliation...)
-                            <input type="text" name="pdf_footer_ligne1" value="{{ .Settings.pdf_footer_ligne1 }}" placeholder="Association N°... - Affilié FFTA N°...">
-                        </label>
-                        <label>Ligne de pied de page 2 (Siège social, contact, site web...)
-                            <input type="text" name="pdf_footer_ligne2" value="{{ .Settings.pdf_footer_ligne2 }}" placeholder="Siège social : 44 rue Charles Mory...">
-                        </label>
-                        <label>
-                            <input type="checkbox" name="pdf_show_contact_footer" value="true" {{ if eq .Settings.pdf_show_contact_footer "true" }}checked{{ end }}>
-                            Inclure automatiquement l'adresse et le site web du club (s'ils sont définis) en dernières lignes du pied de page
-                        </label>
-                    </fieldset>
+                        <fieldset>
+                            <legend><strong>⚖️ Mentions Légales & Pied de page</strong></legend>
+                            <label>Ligne de pied de page 1 (Identifiants, SIRET, Affiliation...)
+                                <input type="text" name="pdf_footer_ligne1" value="{{ .Settings.pdf_footer_ligne1 }}" placeholder="Association N°... - Affilié FFTA N°...">
+                            </label>
+                            <label>Ligne de pied de page 2 (Siège social, contact, site web...)
+                                <input type="text" name="pdf_footer_ligne2" value="{{ .Settings.pdf_footer_ligne2 }}" placeholder="Siège social : 44 rue Charles Mory...">
+                            </label>
+                            <label>
+                                <input type="checkbox" name="pdf_show_contact_footer" value="true" {{ if eq .Settings.pdf_show_contact_footer "true" }}checked{{ end }}>
+                                Inclure automatiquement l'adresse et le site web du club (s'ils sont définis) en dernières lignes du pied de page
+                            </label>
+                        </fieldset>
+                    </div>
 
-            <fieldset>
-                <legend><strong>💰 Tarifs de location par défaut</strong></legend>
-                <div class="grid">
-                    <label>Tarif de location annuel par défaut (€)
-                        <input type="number" name="montant_loyer" value="{{ .Settings.montant_loyer }}" placeholder="Ex: 120.00" step="0.01" min="0">
-                    </label>
-                    <label>Montant de la caution par défaut (€)
-                        <input type="number" name="montant_caution" value="{{ .Settings.montant_caution }}" placeholder="Ex: 300.00" step="0.01" min="0">
-                    </label>
-                </div>
-            </fieldset>
+                    <!-- SECTION 2 : Contrat -->
+                    <div id="contract-section" class="tab-content" style="display: none;">
+                        <fieldset>
+                            <legend><strong>💰 Tarifs de location par défaut</strong></legend>
+                            <div class="grid">
+                                <label>Tarif de location annuel par défaut (€)
+                                    <input type="number" name="montant_loyer" value="{{ .Settings.montant_loyer }}" placeholder="Ex: 120.00" step="0.01" min="0">
+                                </label>
+                                <label>Montant de la caution par défaut (€)
+                                    <input type="number" name="montant_caution" value="{{ .Settings.montant_caution }}" placeholder="Ex: 300.00" step="0.01" min="0">
+                                </label>
+                            </div>
+                        </fieldset>
 
-            <fieldset>
-                <legend><strong>📝 Clauses du Contrat de Location</strong></legend>
-                <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Définissez le texte des clauses officielles affichées sur vos contrats PDF.</p>
-                
-                <label><strong>1. Mise à disposition</strong>
-                    <textarea name="pdf_clause_mise_disposition" rows="3" placeholder="Ex: Le club met à disposition le matériel révisé...">{{ .Settings.pdf_clause_mise_disposition }}</textarea>
-                </label>
-                
-                <label><strong>2. Conditions d'utilisation</strong>
-                    <textarea name="pdf_clause_conditions_utilisation" rows="3" placeholder="Ex: Prêt strictement personnel, respect de la sécurité...">{{ .Settings.pdf_clause_conditions_utilisation }}</textarea>
-                </label>
-                
-                <label><strong>3. Entretien et réparations</strong>
-                    <textarea name="pdf_clause_entretien_reparations" rows="3" placeholder="Ex: L'adhérent s'engage à prendre soin, signalement de casse...">{{ .Settings.pdf_clause_entretien_reparations }}</textarea>
-                </label>
-                
-                <label><strong>4. Dépôt de garantie (Caution)</strong>
-                    <textarea name="pdf_clause_depot_garantie" rows="3" placeholder="Ex: Un chèque de caution non encaissé est requis...">{{ .Settings.pdf_clause_depot_garantie }}</textarea>
-                </label>
-                
-                <label><strong>5. Durée et restitution</strong>
-                    <textarea name="pdf_clause_duree_restitution" rows="3" placeholder="Ex: Restitution propre et complète à la date fixée...">{{ .Settings.pdf_clause_duree_restitution }}</textarea>
-                </label>
-            </fieldset>
+                        <fieldset>
+                            <legend><strong>📝 Clauses du Contrat de Location</strong></legend>
+                            <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Définissez le texte des clauses officielles affichées sur vos contrats PDF.</p>
+                            
+                            <label><strong>1. Mise à disposition</strong>
+                                <textarea name="pdf_clause_mise_disposition" rows="3" placeholder="Ex: Le club met à disposition le matériel révisé...">{{ .Settings.pdf_clause_mise_disposition }}</textarea>
+                            </label>
+                            
+                            <label><strong>2. Conditions d'utilisation</strong>
+                                <textarea name="pdf_clause_conditions_utilisation" rows="3" placeholder="Ex: Prêt strictement personnel, respect de la sécurité...">{{ .Settings.pdf_clause_conditions_utilisation }}</textarea>
+                            </label>
+                            
+                            <label><strong>3. Entretien et réparations</strong>
+                                <textarea name="pdf_clause_entretien_reparations" rows="3" placeholder="Ex: L'adhérent s'engage à prendre soin, signalement de casse...">{{ .Settings.pdf_clause_entretien_reparations }}</textarea>
+                            </label>
+                            
+                            <label><strong>4. Dépôt de garantie (Caution)</strong>
+                                <textarea name="pdf_clause_depot_garantie" rows="3" placeholder="Ex: Un chèque de caution non encaissé est requis...">{{ .Settings.pdf_clause_depot_garantie }}</textarea>
+                            </label>
+                            
+                            <label><strong>5. Durée et restitution</strong>
+                                <textarea name="pdf_clause_duree_restitution" rows="3" placeholder="Ex: Restitution propre et complète à la date fixée...">{{ .Settings.pdf_clause_duree_restitution }}</textarea>
+                            </label>
+                        </fieldset>
+                    </div>
 
                     <button type="submit">💾 Enregistrer les paramètres</button>
                 </form>
             </article>
         </section>
     </main>
+
+    <script>
+        function showTab(tabId) {
+            // Cacher tous les contenus d'onglets
+            document.querySelectorAll('.tab-content').forEach(function(el) {
+                el.style.display = 'none';
+            });
+            // Afficher le contenu sélectionné
+            document.getElementById(tabId).style.display = 'block';
+
+            // Gérer la surbrillance des boutons d'onglets
+            const btnIdentity = document.getElementById('tab-identity');
+            const btnContract = document.getElementById('tab-contract');
+
+            if (tabId === 'identity-section') {
+                btnIdentity.classList.remove('outline', 'secondary');
+                btnContract.classList.add('outline', 'secondary');
+            } else {
+                btnContract.classList.remove('outline', 'secondary');
+                btnIdentity.classList.add('outline', 'secondary');
+            }
+        }
+    </script>
 
     {{ template "footer" . }}
 </body>
