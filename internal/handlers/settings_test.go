@@ -11,6 +11,7 @@ import (
 
 	"github.com/deogracia/toxophilus/models"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 // MockSettingRepository simule la base de données pour les réglages
@@ -48,6 +49,10 @@ func (m *MockSettingRepository) SaveAll(settings map[string]string) error {
 
 func TestProcessSettingsSave_ImageMimeValidation(t *testing.T) {
 	gin.SetMode(gin.TestMode)
+
+	// Configurer un dossier temporaire pour les tests d'upload afin d'éviter d'écrire sur le disque
+	tempDir := t.TempDir()
+	viper.Set("app.upload_dir", tempDir)
 
 	// Routeur et Handler de test
 	mockRepo := &MockSettingRepository{settings: make(map[string]string)}
