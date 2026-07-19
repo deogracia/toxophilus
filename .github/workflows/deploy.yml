@@ -26,12 +26,14 @@ jobs:
 
       - name: Download Release Asset from GitHub (decoupled)
         run: |
+          mkdir -p dist
           # Télécharge le package pré-compilé de la release correspondant au tag spécifié
-          curl -s -L -o toxophilus-linux-amd64.tar.gz \
+          curl -s -L -o ./dist/toxophilus-linux-amd64.tar.gz \
             "https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.tag_name }}/toxophilus-linux-amd64.tar.gz"
 
       - name: Decompress Asset
         run: |
+          cd dist
           tar -xzvf toxophilus-linux-amd64.tar.gz -C ./
 
       - name: Pause Alwaysdata Service
