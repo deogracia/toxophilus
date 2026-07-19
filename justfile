@@ -87,7 +87,10 @@ audit:
 	@echo "🛡️ 2. Scan de sécurité du code avec gosec..."
 	gosec -exclude-dir=dist ./...
 	@echo ""
-	@echo "🧹 3. Vérification des bonnes pratiques avec golangci-lint..."
+	@echo "🧹 3. Analyse statique de code avec staticcheck..."
+	staticcheck ./...
+	@echo ""
+	@echo "🧹 4. Vérification des bonnes pratiques avec golangci-lint..."
 	@echo " Todo..."
 	# golangci-lint run
 

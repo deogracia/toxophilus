@@ -40,6 +40,11 @@ jobs:
           # On exclut le dossier dist si jamais il existe, pour ne pas scanner les binaires
           gosec -exclude-dir=dist ./...
 
+      - name: Scan Staticcheck (Analyse statique)
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          staticcheck ./...
+
   build:
     name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
     needs: audit

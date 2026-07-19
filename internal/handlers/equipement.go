@@ -58,7 +58,7 @@ func parseEquipementFields(anneeStr string, dateInventaireStr string, prixStr st
 		var err error
 		anneeInt, err = strconv.Atoi(anneeStr)
 		if err != nil {
-			return 0, 0, 0.0, errors.New("Erreur de conversion: AnneeAchat - l'année d'achat doit être un nombre entier valide.")
+			return 0, 0, 0.0, errors.New("erreur de conversion: AnneeAchat - l'année d'achat doit être un nombre entier valide")
 		}
 	}
 
@@ -68,7 +68,7 @@ func parseEquipementFields(anneeStr string, dateInventaireStr string, prixStr st
 		var err error
 		dateInventaireInt, err = strconv.Atoi(dateInventaireStr)
 		if err != nil {
-			return 0, 0, 0.0, errors.New("Erreur de conversion: DateInventaire - l'année d'achat doit être un nombre entier valide.")
+			return 0, 0, 0.0, errors.New("erreur de conversion: DateInventaire - l'année d'achat doit être un nombre entier valide")
 		}
 	}
 
@@ -78,7 +78,7 @@ func parseEquipementFields(anneeStr string, dateInventaireStr string, prixStr st
 		var err error
 		prixFloat, err = strconv.ParseFloat(prixStr, 64)
 		if err != nil {
-			return 0, 0, 0.0, errors.New("Erreur de conversion: Prix - le prix doit être un montant valide (ex: 153.52).")
+			return 0, 0, 0.0, errors.New("erreur de conversion: Prix - le prix doit être un montant valide (ex: 153.52)")
 		}
 	}
 
