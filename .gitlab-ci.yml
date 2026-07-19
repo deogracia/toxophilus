@@ -118,7 +118,7 @@ deploy_alwaysdata:
     - curl -s -X PATCH "https://api.alwaysdata.com/v1/service/$ALWAYSDATA_SERVICE_ID/" -u "$ALWAYSDATA_TOKEN:" -H "Content-Type: application/json" -d '{"is_disabled":true}'
     
     # 4. Copie des fichiers extraits de l'archive dans le dossier Alwaysdata
-    - scp ./dist/toxophilus ./dist/toxophilus-cli ./dist/config-example.toml $ALWAYSDATA_ACCOUNT@$ALWAYSDATA_SSH_HOST:$ALWAYSDATA_SSH_PATH/
+    - scp ./dist/toxophilus-linux-amd64 ./dist/toxophilus_cli-linux-amd64 ./dist/config-example.toml $ALWAYSDATA_ACCOUNT@$ALWAYSDATA_SSH_HOST:$ALWAYSDATA_SSH_PATH/
     
     # 5. Relance du service Alwaysdata (is_disabled: false)
     - curl -s -X PATCH "https://api.alwaysdata.com/v1/service/$ALWAYSDATA_SERVICE_ID/" -u "$ALWAYSDATA_TOKEN:" -H "Content-Type: application/json" -d '{"is_disabled":false}'

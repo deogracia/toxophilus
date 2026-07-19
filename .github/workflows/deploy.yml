@@ -40,7 +40,7 @@ jobs:
 
       - name: Upload Binary
         run: |
-          scp ./dist/toxophilus ./dist/toxophilus-cli ./dist/config-example.toml ${{ secrets.ALWAYSDATA_ACCOUNT }}@${{ secrets.ALWAYSDATA_SSH_HOST }}:${{ secrets.ALWAYSDATA_SSH_PATH }}/
+          scp ./dist/toxophilus-linux-amd64 ./dist/toxophilus_cli-linux-amd64 ./dist/config-example.toml ${{ secrets.ALWAYSDATA_ACCOUNT }}@${{ secrets.ALWAYSDATA_SSH_HOST }}:${{ secrets.ALWAYSDATA_SSH_PATH }}/
 
       - name: Resume Alwaysdata Service
         run: |
