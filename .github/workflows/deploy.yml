@@ -1,0 +1,53 @@
+name: Deploy Release to Alwaysdata
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag de la release à déployer (ex: v1.0.0)'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add SSH Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.ALWAYSDATA_SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Download Release Asset from GitHub (decoupled)
+        run: |
+          # Télécharge le package pré-compilé de la release correspondant au tag spécifié
+          curl -s -L -o toxophilus-linux-amd64.tar.gz \
+            "https://github.com/${{ github.repository }}/releases/download/${{ github.event.inputs.tag_name }}/toxophilus-linux-amd64.tar.gz"
+
+      - name: Decompress Asset
+        run: |
+          tar -xzvf toxophilus-linux-amd64.tar.gz -C ./
+
+      - name: Pause Alwaysdata Service
+        run: |
+          curl -s -X PATCH "https://api.alwaysdata.com/v1/service/${{ secrets.ALWAYSDATA_SERVICE_ID }}/" \
+            -u "${{ secrets.ALWAYSDATA_TOKEN }}:" \
+            -H "Content-Type: application/json" \
+            -d '{"is_disabled": true}'
+
+      - name: Upload Binary
+        run: |
+          scp ./dist/toxophilus-linux-amd64 ./dist/toxophilus_cli-linux-amd64 ./dist/config-example.toml ${{ secrets.ALWAYSDATA_ACCOUNT }}@${{ secrets.ALWAYSDATA_SSH_HOST }}:${{ secrets.ALWAYSDATA_SSH_PATH }}/
+
+      - name: Resume Alwaysdata Service
+        run: |
+          curl -s -X PATCH "https://api.alwaysdata.com/v1/service/${{ secrets.ALWAYSDATA_SERVICE_ID }}/" \
+            -u "${{ secrets.ALWAYSDATA_TOKEN }}:" \
+            -H "Content-Type: application/json" \
+            -d '{"is_disabled": false}'

@@ -9,6 +9,9 @@ on:
     branches: [ "main" ]
   workflow_dispatch: # Permet de lancer la compilation manuellement depuis l'interface GitHub
 
+permissions:
+  contents: read
+
 env:
   GO_VERSION: '1.26'
 
