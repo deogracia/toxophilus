@@ -29,6 +29,13 @@ gosec:
     - go install github.com/securego/gosec/v2/cmd/gosec@latest
     - gosec ./...
 
+staticcheck:
+  stage: audit
+  image: golang:$GOLANG_VERSION
+  script:
+    - go install honnef.co/go/tools/cmd/staticcheck@latest
+    - staticcheck ./...
+
 build_all:
   stage: build
   image: golang:$GOLANG_VERSION
