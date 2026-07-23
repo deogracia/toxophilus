@@ -18,7 +18,7 @@ type LoginRequest struct {
 func LoginHandler(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Format d'identifiants invalide"})
+		RespondWithError(c, http.StatusBadRequest, "Format d'identifiants invalide")
 		return
 	}
 
@@ -26,20 +26,20 @@ func LoginHandler(c *gin.Context) {
 	// 1. On cherche l'utilisateur par son email
 	if err := database.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
 		// Par sécurité, on ne dit pas si c'est l'email ou le mot de passe qui est faux
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Identifiants incorrects"})
+		RespondWithError(c, http.StatusUnauthorized, "Identifiants incorrects")
 		return
 	}
 
 	// 2. On vérifie le mot de passe hashé
 	if !auth.CheckPasswordHash(req.Password, user.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Identifiants incorrects"})
+		RespondWithError(c, http.StatusUnauthorized, "Identifiants incorrects")
 		return
 	}
 
 	// 3. Génération du token JWT
 	token, err := auth.GenerateToken(user.ID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur interne lors de la création de la session"})
+		RespondWithError(c, http.StatusInternalServerError, "Erreur interne lors de la création de la session")
 		return
 	}
 

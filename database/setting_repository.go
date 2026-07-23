@@ -11,7 +11,7 @@ type GormSettingRepository struct {
 }
 
 // NewGormSettingRepository crée une nouvelle instance de GormSettingRepository.
-func NewGormSettingRepository(db *gorm.DB) *GormSettingRepository {
+func NewGormSettingRepository(db *gorm.DB) models.SettingRepository {
 	return &GormSettingRepository{db: db}
 }
 

@@ -11,7 +11,7 @@ type GormRiserRepository struct {
 }
 
 // NewGormRiserRepository crée une nouvelle instance de GormRiserRepository.
-func NewGormRiserRepository(db *gorm.DB) *GormRiserRepository {
+func NewGormRiserRepository(db *gorm.DB) models.RiserRepository {
 	return &GormRiserRepository{db: db}
 }
 
@@ -71,7 +71,7 @@ type GormLimbRepository struct {
 }
 
 // NewGormLimbRepository crée une nouvelle instance de GormLimbRepository.
-func NewGormLimbRepository(db *gorm.DB) *GormLimbRepository {
+func NewGormLimbRepository(db *gorm.DB) models.LimbRepository {
 	return &GormLimbRepository{db: db}
 }
 

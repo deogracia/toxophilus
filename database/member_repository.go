@@ -11,7 +11,7 @@ type GormMemberRepository struct {
 }
 
 // NewGormMemberRepository crée une nouvelle instance de GormMemberRepository.
-func NewGormMemberRepository(db *gorm.DB) *GormMemberRepository {
+func NewGormMemberRepository(db *gorm.DB) models.MemberRepository {
 	return &GormMemberRepository{db: db}
 }
 
