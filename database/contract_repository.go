@@ -11,7 +11,7 @@ type GormContractRepository struct {
 }
 
 // NewGormContractRepository crée une nouvelle instance de GormContractRepository.
-func NewGormContractRepository(db *gorm.DB) *GormContractRepository {
+func NewGormContractRepository(db *gorm.DB) models.ContractRepository {
 	return &GormContractRepository{db: db}
 }
 

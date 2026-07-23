@@ -46,14 +46,14 @@ type CreateMemberRequest struct {
 func (h *MemberHandler) CreateMember(c *gin.Context) {
 	var req CreateMemberRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Données invalides", "details": err.Error()})
+		RespondWithError(c, http.StatusBadRequest, "Données invalides : "+err.Error())
 		return
 	}
 
 	// Conversion de la date (le format "2006-01-02" est la date de référence fixe en Go)
 	dateNaissance, err := time.Parse("2006-01-02", req.DateNaissance)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Format de date invalide. Utilisez AAAA-MM-JJ"})
+		RespondWithError(c, http.StatusBadRequest, "Format de date invalide. Utilisez AAAA-MM-JJ")
 		return
 	}
 
@@ -80,17 +80,17 @@ func (h *MemberHandler) CreateMember(c *gin.Context) {
 	// Validation de l'autorité parentale pour les mineurs non émancipés
 	if member.NeedsParentalAuthorization() {
 		if member.ParentNom == "" || member.ParentPrenom == "" || member.ParentRelation == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Les informations du représentant légal (Nom, Prénom, Relation) sont requises pour un mineur."})
+			RespondWithError(c, http.StatusBadRequest, "Les informations du représentant légal (Nom, Prénom, Relation) sont requises pour un mineur.")
 			return
 		}
 		if member.ParentEmail == "" && member.ParentTelephone == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Au moins un contact (Email ou Téléphone) pour le représentant légal est requis."})
+			RespondWithError(c, http.StatusBadRequest, "Au moins un contact (Email ou Téléphone) pour le représentant légal est requis.")
 			return
 		}
 	} else if member.IsMinor() && member.EstEmancipe {
 		// Validation pour les mineurs émancipés
 		if member.ReferenceEmancipation == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "La référence de la décision de justice d'émancipation est obligatoire pour un mineur émancipé."})
+			RespondWithError(c, http.StatusBadRequest, "La référence de la décision de justice d'émancipation est obligatoire pour un mineur émancipé.")
 			return
 		}
 	}
@@ -98,7 +98,7 @@ func (h *MemberHandler) CreateMember(c *gin.Context) {
 	// Insertion en base de données via le repository
 	if err := h.repo.Create(&member); err != nil {
 		// L'erreur typique ici serait un doublon sur le CodeAdherent (qui est en uniqueIndex)
-		c.JSON(http.StatusConflict, gin.H{"error": "Impossible de créer le membre (Ce code adhérent existe peut-être déjà)"})
+		RespondWithError(c, http.StatusConflict, "Impossible de créer le membre (Ce code adhérent existe peut-être déjà)")
 		return
 	}
 
@@ -110,7 +110,7 @@ func (h *MemberHandler) CreateMember(c *gin.Context) {
 func (h *MemberHandler) ListMembers(c *gin.Context) {
 	members, err := h.repo.GetAll()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la récupération des membres"})
+		RespondWithError(c, http.StatusInternalServerError, "Erreur lors de la récupération des membres")
 		return
 	}
 
@@ -122,27 +122,27 @@ func (h *MemberHandler) UpdateMember(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		RespondWithError(c, http.StatusBadRequest, "ID invalide")
 		return
 	}
 
 	// 1. Vérifier si le membre existe via le repository
 	member, err := h.repo.GetByID(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Membre introuvable"})
+		RespondWithError(c, http.StatusNotFound, "Membre introuvable")
 		return
 	}
 
 	// 2. Récupérer les nouvelles données
 	var req CreateMemberRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Données invalides", "details": err.Error()})
+		RespondWithError(c, http.StatusBadRequest, "Données invalides : "+err.Error())
 		return
 	}
 
 	dateNaissance, err := time.Parse("2006-01-02", req.DateNaissance)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Format de date invalide. Utilisez AAAA-MM-JJ"})
+		RespondWithError(c, http.StatusBadRequest, "Format de date invalide. Utilisez AAAA-MM-JJ")
 		return
 	}
 
@@ -168,24 +168,24 @@ func (h *MemberHandler) UpdateMember(c *gin.Context) {
 	// Validation de l'autorité parentale pour les mineurs non émancipés
 	if member.NeedsParentalAuthorization() {
 		if member.ParentNom == "" || member.ParentPrenom == "" || member.ParentRelation == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Les informations du représentant légal (Nom, Prénom, Relation) sont requises pour un mineur."})
+			RespondWithError(c, http.StatusBadRequest, "Les informations du représentant légal (Nom, Prénom, Relation) sont requises pour un mineur.")
 			return
 		}
 		if member.ParentEmail == "" && member.ParentTelephone == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Au moins un contact (Email ou Téléphone) pour le représentant légal est requis."})
+			RespondWithError(c, http.StatusBadRequest, "Au moins un contact (Email ou Téléphone) pour le représentant légal est requis.")
 			return
 		}
 	} else if member.IsMinor() && member.EstEmancipe {
 		// Validation pour les mineurs émancipés
 		if member.ReferenceEmancipation == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "La référence de la décision de justice d'émancipation est obligatoire pour un mineur émancipé."})
+			RespondWithError(c, http.StatusBadRequest, "La référence de la décision de justice d'émancipation est obligatoire pour un mineur émancipé.")
 			return
 		}
 	}
 
 	// 4. Sauvegarder via le repository
 	if err := h.repo.Update(member); err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "Impossible de modifier : ce Code Adhérent est peut être déjà utilisé par un autre archer."})
+		RespondWithError(c, http.StatusConflict, "Impossible de modifier : ce Code Adhérent est peut être déjà utilisé par un autre archer.")
 		return
 	}
 
@@ -197,19 +197,19 @@ func (h *MemberHandler) DeleteMember(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		RespondWithError(c, http.StatusBadRequest, "ID invalide")
 		return
 	}
 
 	member, err := h.repo.GetByID(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Membre introuvable"})
+		RespondWithError(c, http.StatusNotFound, "Membre introuvable")
 		return
 	}
 
 	// Soft delete via le repository
 	if err := h.repo.Delete(member); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Impossible de supprimer ce membre."})
+		RespondWithError(c, http.StatusInternalServerError, "Impossible de supprimer ce membre.")
 		return
 	}
 
@@ -221,12 +221,12 @@ func (h *MemberHandler) ReactivateMember(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		RespondWithError(c, http.StatusBadRequest, "ID invalide")
 		return
 	}
 
 	if err := h.repo.Reactivate(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Impossible de réactiver ce membre."})
+		RespondWithError(c, http.StatusInternalServerError, "Impossible de réactiver ce membre.")
 		return
 	}
 
@@ -238,12 +238,12 @@ func (h *MemberHandler) HardDeleteMember(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		RespondWithError(c, http.StatusBadRequest, "ID invalide")
 		return
 	}
 
 	if err := h.repo.HardDelete(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Erreur lors de la suppression définitive"})
+		RespondWithError(c, http.StatusInternalServerError, "Erreur lors de la suppression définitive")
 		return
 	}
 
@@ -255,14 +255,14 @@ func (h *MemberHandler) ExportMemberData(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID invalide"})
+		RespondWithError(c, http.StatusBadRequest, "ID invalide")
 		return
 	}
 
 	// On récupère le membre (même s'il est archivé)
 	member, err := h.repo.GetByIDWithUnscoped(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Membre introuvable"})
+		RespondWithError(c, http.StatusNotFound, "Membre introuvable")
 		return
 	}
 

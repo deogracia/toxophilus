@@ -22,14 +22,14 @@ func ProcessSetup(c *gin.Context) {
 	database.DB.Model(&models.User{}).Count(&count)
 
 	if count > 0 {
-		c.JSON(http.StatusForbidden, gin.H{"error": "L'administrateur a déjà été créé."})
+		RespondWithError(c, http.StatusForbidden, "L'administrateur a déjà été créé.")
 		return
 	}
 
 	// 2. Valider les données reçues
 	var req SetupRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Données invalides", "details": err.Error()})
+		RespondWithError(c, http.StatusBadRequest, "Données invalides : "+err.Error())
 		return
 	}
 
@@ -41,7 +41,7 @@ func ProcessSetup(c *gin.Context) {
 	}
 
 	if err := database.DB.Create(&adminUser).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Impossible de créer l'administrateur"})
+		RespondWithError(c, http.StatusInternalServerError, "Impossible de créer l'administrateur")
 		return
 	}
 

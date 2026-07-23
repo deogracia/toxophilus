@@ -29,6 +29,11 @@ func respondWithDelete(c *gin.Context, message string) {
 	c.JSON(http.StatusOK, gin.H{"message": message})
 }
 
+// RespondWithError uniformise les réponses d'erreur en JSON
+func RespondWithError(c *gin.Context, code int, message string) {
+	c.JSON(code, gin.H{"status": "error", "message": message})
+}
+
 // respondWithReactivate gère la réponse après une réactivation d'un élément archivé.
 // Si la requête provient d'HTMX, on renvoie un statut 200 vide (HTMX va faire disparaître la ligne).
 // Sinon, on renvoie un message JSON standard.
