@@ -53,6 +53,9 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 	// On attache NOTRE logger, ainsi que le module Recovery (qui évite que le serveur crash en cas de panic)
 	r.Use(middleware.SlogLogger(), gin.Recovery())
 
+	// On ajoute les en-têtes de sécurité recommandés
+	r.Use(middleware.SecurityHeaders())
+
 	// On redirige les petits messages internes de démarrage de Gin vers le même fichier
 	if logFile != nil {
 		gin.DefaultWriter = io.MultiWriter(os.Stdout, logFile)
@@ -129,7 +132,7 @@ func setupRouter(env string, logFile *os.File) *gin.Engine {
 	// ==========================================
 
 	// 3. Routes Publiques
-	r.POST("/api/login", handlers.LoginHandler)
+	r.POST("/api/login", middleware.RateLimitLogin(), handlers.LoginHandler)
 	r.POST("/api/logout", handlers.LogoutHandler)
 	// health check
 	r.GET("/health", func(c *gin.Context) {
