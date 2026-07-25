@@ -31,7 +31,7 @@ func respondWithDelete(c *gin.Context, message string) {
 
 // RespondWithError uniformise les réponses d'erreur en JSON
 func RespondWithError(c *gin.Context, code int, message string) {
-	c.JSON(code, gin.H{"status": "error", "message": message})
+	c.JSON(code, gin.H{"error": message})
 }
 
 // respondWithReactivate gère la réponse après une réactivation d'un élément archivé.
