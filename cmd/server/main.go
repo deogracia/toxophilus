@@ -265,7 +265,9 @@ func main() {
 	// On configure le serveur HTTP natif de Go avec le routeur Gin
 	srv := &http.Server{
 		Addr:              port,
-		ReadHeaderTimeout: 5 * time.Second, // protection anti Slowloris
+		ReadHeaderTimeout: 5 * time.Second,  // protection anti Slowloris
+		WriteTimeout:      15 * time.Second, // éviter les clients lents en écriture
+		IdleTimeout:       60 * time.Second, // libérer les connexions inactives
 		Handler:           r,
 	}
 
