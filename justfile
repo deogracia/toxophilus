@@ -20,6 +20,12 @@ test:
 test-v:
 	go test -v ./...
 
+# Lance les tests End-to-End (Interface Utilisateur)
+[group('On my workstation')]
+[group('tests & coverage')]
+test-e2e:
+	go test ./cmd/server -v -run TestE2E
+
 # Génère et affiche la couverture de code dans le navigateur
 [group('On my workstation')]
 [group('tests & coverage')]
