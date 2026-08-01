@@ -51,7 +51,8 @@ func setupE2EEnv(t *testing.T) *E2ETestEnv {
 	ts := httptest.NewServer(r)
 
 	// Init Navigateur
-	l := launcher.New()
+	// On désactive la sandbox pour que Chromium puisse tourner dans Docker / GitHub Actions sans droits root spéciaux.
+	l := launcher.New().NoSandbox(true)
 
 	// On désactive Leakless uniquement sur Windows pour éviter les faux positifs d'antivirus.
 	// Sur Linux (CI) et macOS, on le garde pour éviter les processus zombies en cas de crash violent.
